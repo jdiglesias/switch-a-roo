@@ -140,6 +140,12 @@ void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 {
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
+    File compareFile = chooser.getResult();
+    AudioFormatManager format;
+    AudioFormatReader compareReader = format.createReaderFor(compareFile);
+    AudioSampleBuffer * compareBuffer;
+    compareReader.read(compareSamples, 0, compareReader.lengthInSamples, 0, true, true);
+    
     for (int channel = 0; channel < getNumInputChannels(); ++channel)
     {
         float* channelData = buffer.getSampleData (channel);

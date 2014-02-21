@@ -27,7 +27,7 @@ public:
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock);
     void releaseResources();
-
+       
     void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
     //==============================================================================
@@ -67,6 +67,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes);
 
 private:
+    FileChooser chooser;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessor)
 };
