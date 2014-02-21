@@ -15,6 +15,7 @@
 //==============================================================================
 SwitcharooAudioProcessor::SwitcharooAudioProcessor()
 {
+    
 }
 
 SwitcharooAudioProcessor::~SwitcharooAudioProcessor()
