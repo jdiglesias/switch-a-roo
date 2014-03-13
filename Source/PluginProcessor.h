@@ -67,7 +67,8 @@ public:
     void setStateInformation (const void* data, int sizeInBytes);
 
 private:
-    std::vector<int> getSegments(float* channelData);
+    std::vector<int> getSegments(float* channelData, int length);
+    void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessor)
 };
