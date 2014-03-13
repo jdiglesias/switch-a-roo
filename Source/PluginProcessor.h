@@ -38,10 +38,10 @@ public:
     const String getName() const;
 
     int getNumParameters();
-
+    File loadFile();
     float getParameter (int index);
     void setParameter (int index, float newValue);
-
+    
     const String getParameterName (int index);
     const String getParameterText (int index);
 
@@ -67,7 +67,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes);
 
 private:
-    FileChooser chooser;
+    std::vector<int> getSegments(float* channelData);
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessor)
 };

@@ -15,7 +15,6 @@
 //==============================================================================
 SwitcharooAudioProcessor::SwitcharooAudioProcessor()
 {
-    
 }
 
 SwitcharooAudioProcessor::~SwitcharooAudioProcessor()
@@ -51,7 +50,17 @@ const String SwitcharooAudioProcessor::getParameterText (int index)
 {
     return String::empty;
 }
-
+File SwitcharooAudioProcessor::loadFile()
+{
+    FileChooser chooser ("Please select the moose you want to load...",
+                           File::getSpecialLocation (File::userHomeDirectory));
+    if (chooser.browseForFileToOpen())
+    {
+        File file (chooser.getResult());
+        return file;
+    }
+    return File();
+}
 const String SwitcharooAudioProcessor::getInputChannelName (int channelIndex) const
 {
     return String (channelIndex + 1);
@@ -140,17 +149,22 @@ void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 {
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
-    File compareFile = chooser.getResult();
+/*    File compareFile = loadFile();
+    float* channelData;
     AudioFormatManager format;
     AudioFormatReader compareReader = format.createReaderFor(compareFile);
     AudioSampleBuffer * compareBuffer;
-    compareReader.read(compareSamples, 0, compareReader.lengthInSamples, 0, true, true);
+    compareReader.read(compareBuffer, 0, compareReader.lengthInSamples, 0, true, true);
+    std::list<std::vector<int> >  segmentIndexes;
     
     for (int channel = 0; channel < getNumInputChannels(); ++channel)
     {
-        float* channelData = buffer.getSampleData (channel);
-
-        // ..do something to the data...
+        std::list<std::vector<int> >::iterator segmentIndexes
+        channelData = buffer.getSampleData (channel);
+        segmentIndexes.push_back(getSegments(channelData));
+        for(std::vector<int>::iterator segments = segmentIndexes.begin(); segments != segmentIndexes.end(); segments++){
+        }
+            
     }
 
     // In case we have more outputs than inputs, we'll clear any output
@@ -159,9 +173,12 @@ void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i)
     {
         buffer.clear (i, 0, buffer.getNumSamples());
-    }
+    }*/
 }
-
+std::vector<int> SwitcharooAudioProcessor::getSegments(float* channelData){
+    return std::vector<int>();
+}
+    
 //==============================================================================
 bool SwitcharooAudioProcessor::hasEditor() const
 {
