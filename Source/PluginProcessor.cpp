@@ -11,8 +11,8 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-
-
+#include <stdlib.h>
+#include <list>
 //==============================================================================
 SwitcharooAudioProcessor::SwitcharooAudioProcessor()
 {
@@ -53,7 +53,7 @@ const String SwitcharooAudioProcessor::getParameterText (int index)
 }
 File SwitcharooAudioProcessor::loadFile()
 {
-    FileChooser chooser ("Please select the moose you want to load...",
+    FileChooser chooser ("Please select the file you want to load...",
                            File::getSpecialLocation (File::userHomeDirectory));
     if (chooser.browseForFileToOpen())
     {
@@ -150,22 +150,30 @@ void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 {
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
-/*    File compareFile = loadFile();
+    File compareFile = loadFile();
     float* channelData;
-    AudioFormatManager format;
-    AudioFormatReader compareReader = format.createReaderFor(compareFile);
+    float* sampleData;
+    int sampleNum;
+//    AudioFormatManager format;
+    AudioFormatManager* format = new AudioFormatManager();
+    format->registerBasicFormats();
+    AudioFormatReader* compareReader = format->createReaderFor(compareFile);
     AudioSampleBuffer * compareBuffer;
-    compareReader.read(compareBuffer, 0, compareReader.lengthInSamples, 0, true, true);
-    std::list<std::vector<int> >  segmentIndexes;
-    
+    compareReader->read(compareBuffer, 0, compareReader->lengthInSamples, 0, true, true);
+    std::list<std::vector<int> > segmentIndexes;
     for (int channel = 0; channel < getNumInputChannels(); ++channel)
     {
-        std::list<std::vector<int> >::iterator segmentIndexes
+        std::list<std::vector<int> >::iterator segments = segmentIndexes.begin();
         channelData = buffer.getSampleData (channel);
-        segmentIndexes.push_back(getSegments(channelData));
-        for(std::vector<int>::iterator segments = segmentIndexes.begin(); segments != segmentIndexes.end(); segments++){
+        sampleData = compareBuffer->getSampleData(channel);
+        sampleNum = buffer.getNumSamples();
+        segmentIndexes.push_back(getSegments(channelData,sampleNum));
+        for(std::vector<int>::iterator segment = segments->begin(); segment != segments->end(); segment++){
+            if(segment+1 != segments->end()){
+                compareSamples(channelData,sampleData,*(segment+1) - *segment, compareBuffer->getNumSamples(), *segment );
+            }
         }
-            
+        segments++;
     }
 
     // In case we have more outputs than inputs, we'll clear any output
@@ -174,12 +182,33 @@ void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i)
     {
         buffer.clear (i, 0, buffer.getNumSamples());
-    }*/
+    }
 }
-std::vector<int> SwitcharooAudioProcessor::getSegments(float* channelData){
-    return std::vector<int>();
+std::vector<int> SwitcharooAudioProcessor::getSegments(float* channelData, int length){
+    std::vector<int> returnSegments;
+    for(int i= 0; i<length-1; i+=getSampleRate()) returnSegments.push_back(i);
+    returnSegments.push_back(length-1);
+    return returnSegments;
 }
-    
+void SwitcharooAudioProcessor::compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset){
+    int sampleIndex, comparisonValue, bestComparisonValue, bestComparisonStart;    
+    for(int sampleStart = 0; sampleStart<sampleLength-sourceLength; sampleStart++){
+        for(int sourceIndex = offset; sourceIndex<offset+sourceLength; sourceIndex++){
+            sampleIndex = sampleStart+sourceIndex-offset;
+            comparisonValue += abs(sourceData[sourceIndex] - sampleData[sampleIndex]);
+        }
+        if(comparisonValue < bestComparisonValue){
+            bestComparisonValue = comparisonValue;
+            bestComparisonStart = sampleStart;
+        }       
+    }
+    for(int i = bestComparisonStart; i< bestComparisonStart+sourceLength; i++){
+        sourceData[offset + i-bestComparisonStart] = sampleData[i];
+    }
+}
+            
+        
+        
 //==============================================================================
 bool SwitcharooAudioProcessor::hasEditor() const
 {
