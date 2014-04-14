@@ -13,15 +13,34 @@
 #include "PluginEditor.h"
 #include <stdlib.h>
 #include <list>
+#include <utility> //for slice pairs std::pair
 //==============================================================================
 SwitcharooAudioProcessor::SwitcharooAudioProcessor()
 {
+	UserParams[MasterBypass] = 0.0f;//default to not bypassed
+		//repeat for "OtherParams"
+	UIUpdateFlag = true;//Request UI update
 }
 
+//int SwitcharooAudioProcessor::getNumParameters(){ return totalNumParam; }
 SwitcharooAudioProcessor::~SwitcharooAudioProcessor()
 {
 }
+AudioSampleBuffer * SwitcharooAudioProcessor::readFile(File compareFile, AudioFormatManager* format){	
+	AudioFormatReader* compareReader = format->createReaderFor(compareFile);
+	AudioSampleBuffer * compareBuffer;
+	compareReader->read(compareBuffer, 0, compareReader->lengthInSamples, 0, true, true);
+	return compareBuffer;
+}
+void SwitcharooAudioProcessor::processFile(File compareFile){
+	AudioFormatManager* format = new AudioFormatManager();
+	format->registerBasicFormats();
+	SwitcharooAudioProcessorEditor * currentEditor = getEditor();
+	AudioSampleBuffer * compareBuffer = readFile(compareFile, format);
+	//std::vector<int> slices = getSlices(compareBuffer);
+	currentEditor->setupThumb(format);
 
+}
 //==============================================================================
 const String SwitcharooAudioProcessor::getName() const
 {
@@ -30,27 +49,40 @@ const String SwitcharooAudioProcessor::getName() const
 
 int SwitcharooAudioProcessor::getNumParameters()
 {
-    return 0;
+    return totalNumParam;
 }
 
 float SwitcharooAudioProcessor::getParameter (int index)
 {
-    return 0.0f;
+	if (index >= 0 && index < totalNumParam)
+		return UserParams[index];
+	else
+		return 0.0f;//invalid index
 }
 
 void SwitcharooAudioProcessor::setParameter (int index, float newValue)
 {
+	if (index >= 0 && index<totalNumParam)
+		UserParams[index] = newValue;
 }
 
 const String SwitcharooAudioProcessor::getParameterName (int index)
 {
-    return String::empty;
+	switch (index)
+	{
+	case MasterBypass: return "Master Bypass";
+		//OtherParams...
+	default:return String::empty;
+	}
 }
 
 const String SwitcharooAudioProcessor::getParameterText (int index)
 {
-    return String::empty;
+	if (index >= 0 && index<totalNumParam)
+		return String(UserParams[index]);//return parameter value as string
+	else return String::empty;
 }
+
 File SwitcharooAudioProcessor::loadFile()
 {
     FileChooser chooser ("Please select the file you want to load...",
@@ -150,7 +182,7 @@ void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 {
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
-    File compareFile = loadFile();
+   /* File compareFile = loadFile();
     float* channelData;
     float* sampleData;
     int sampleNum;
@@ -175,15 +207,23 @@ void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
         }
         segments++;
     }
-
+	*/
     // In case we have more outputs than inputs, we'll clear any output
     // channels that didn't contain input data, (because these aren't
     // guaranteed to be empty - they may contain garbage).
-    for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i)
+    /*for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i)
     {
         buffer.clear (i, 0, buffer.getNumSamples());
-    }
+    }*/
 }
+/*
+std::vector<std::pair<int,int> > SwitcharooAudioProcessor::getSlices(float *channelData){
+	//this does slicing by volume of some kind.
+	std::vector<std::pair<int, int> > ret;
+
+	return ret;
+}
+
 std::vector<int> SwitcharooAudioProcessor::getSegments(float* channelData, int length){
     std::vector<int> returnSegments;
     for(int i= 0; i<length-1; i+=getSampleRate()) returnSegments.push_back(i);
@@ -207,7 +247,7 @@ void SwitcharooAudioProcessor::compareSamples(float* sourceData, float* sampleDa
     }
 }
             
-        
+*/        
         
 //==============================================================================
 bool SwitcharooAudioProcessor::hasEditor() const

@@ -25,6 +25,7 @@ public:
     ~SwitcharooAudioProcessor();
 
     //==============================================================================
+
     void prepareToPlay (double sampleRate, int samplesPerBlock);
     void releaseResources();
        
@@ -33,12 +34,16 @@ public:
     //==============================================================================
     AudioProcessorEditor* createEditor();
     bool hasEditor() const;
-
+	SwitcharooAudioProcessorEditor* getEditor() const
+	{
+		return static_cast <SwitcharooAudioProcessorEditor*>(getActiveEditor());
+	}
     //==============================================================================
     const String getName() const;
 
     int getNumParameters();
-    File loadFile();
+	void processFile(File compareFile);
+	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
     float getParameter (int index);
     void setParameter (int index, float newValue);
     
@@ -66,10 +71,22 @@ public:
     void getStateInformation (MemoryBlock& destData);
     void setStateInformation (const void* data, int sizeInBytes);
 
+	//added
+	enum Parameters{ MasterBypass = 0, /*OtherParams...,*/ totalNumParam };
+
+	bool NeedsUIUpdate(){ return UIUpdateFlag; };
+
+	void RequestUIUpdate(){ UIUpdateFlag = true; };
+	void ClearUIUpdateFlag(){ UIUpdateFlag = false; };
 private:
     std::vector<int> getSegments(float* channelData, int length);
     void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);
-    //==============================================================================
+	std::vector<std::pair<int, int> > getSlices(float *channelData);
+	float UserParams[totalNumParam];
+
+	bool UIUpdateFlag;
+	
+	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessor)
 };
 
