@@ -26,21 +26,23 @@ SwitcharooAudioProcessor::SwitcharooAudioProcessor()
 SwitcharooAudioProcessor::~SwitcharooAudioProcessor()
 {
 }
-AudioSampleBuffer * SwitcharooAudioProcessor::readFile(File compareFile, AudioFormatManager* format){	
+// custom code
+AudioSampleBuffer * SwitcharooAudioProcessor::readFile(File compareFile, AudioFormatManager* format){
 	AudioFormatReader* compareReader = format->createReaderFor(compareFile);
 	AudioSampleBuffer * compareBuffer;
 	compareReader->read(compareBuffer, 0, compareReader->lengthInSamples, 0, true, true);
 	return compareBuffer;
 }
-void SwitcharooAudioProcessor::processFile(File compareFile){
+AudioSampleBuffer * SwitcharooAudioProcessor::processFile(File compareFile){
 	AudioFormatManager* format = new AudioFormatManager();
 	format->registerBasicFormats();
-	SwitcharooAudioProcessorEditor * currentEditor = getEditor();
+//	SwitcharooAudioProcessorEditor * currentEditor = getEditor();
 	AudioSampleBuffer * compareBuffer = readFile(compareFile, format);
 	//std::vector<int> slices = getSlices(compareBuffer);
-	currentEditor->setupThumb(format);
-
+	//currentEditor->setupThumb(format);
+	return compareBuffer;
 }
+
 //==============================================================================
 const String SwitcharooAudioProcessor::getName() const
 {
@@ -248,6 +250,8 @@ void SwitcharooAudioProcessor::compareSamples(float* sourceData, float* sampleDa
 }
             
 */        
+
+
         
 //==============================================================================
 bool SwitcharooAudioProcessor::hasEditor() const

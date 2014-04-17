@@ -13,7 +13,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-
 //==============================================================================
 /**
 */
@@ -24,8 +23,8 @@ public:
     SwitcharooAudioProcessor();
     ~SwitcharooAudioProcessor();
 
-    //==============================================================================
 
+    //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock);
     void releaseResources();
        
@@ -34,16 +33,13 @@ public:
     //==============================================================================
     AudioProcessorEditor* createEditor();
     bool hasEditor() const;
-	SwitcharooAudioProcessorEditor* getEditor() const
-	{
-		return static_cast <SwitcharooAudioProcessorEditor*>(getActiveEditor());
-	}
+	
+
     //==============================================================================
     const String getName() const;
 
     int getNumParameters();
-	void processFile(File compareFile);
-	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
+    File loadFile();
     float getParameter (int index);
     void setParameter (int index, float newValue);
     
@@ -78,6 +74,11 @@ public:
 
 	void RequestUIUpdate(){ UIUpdateFlag = true; };
 	void ClearUIUpdateFlag(){ UIUpdateFlag = false; };
+
+	AudioSampleBuffer * processFile(File compareFile);
+	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
+	
+
 private:
     std::vector<int> getSegments(float* channelData, int length);
     void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);
