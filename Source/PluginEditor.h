@@ -59,7 +59,7 @@ public:
     void resized();
     void sliderValueChanged (Slider* sliderThatWasMoved);
     void buttonClicked (Button* buttonThatWasClicked);
-	void setupThumb(AudioFormatManager* format);
+	void setupThumb(AudioFormatManager* format, File compareFile);
 
 
 private:
@@ -69,8 +69,8 @@ private:
     //==============================================================================
     ScopedPointer<Slider> slider;
     ScopedPointer<TextButton> textButton;
-
-
+	AudioThumbnail * thumbalina = NULL;
+	int testGui;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessorEditor)
 };
