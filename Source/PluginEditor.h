@@ -59,12 +59,11 @@ public:
     void resized();
     void sliderValueChanged (Slider* sliderThatWasMoved);
     void buttonClicked (Button* buttonThatWasClicked);
-
+	void setupThumb(AudioFormatManager* format);
 
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
-	AudioThumbnail * thumb;
     //[/UserVariables]
 
     //==============================================================================
