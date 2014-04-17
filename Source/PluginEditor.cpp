@@ -128,8 +128,19 @@ void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked
 }
 
 void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format){
-//	AudioThumbnailCache cache(5);
-	//AudioThumbnail thisThumb = new AudioThumbnail(200, format, cache);
+	AudioThumbnailCache cache(5);
+	AudioThumbnail * thisThumb = new AudioThumbnail(200, *format, cache);
+	//AudioThumbnailBase thumb = new AudioThumbnailBase();
+	/*Graphics * g = new Graphics();
+	Rectangle<int> rect(0, 0, 200, 30);
+	double start;
+	double end;
+	float zfact;
+	start = 0;
+	end = 30;
+	zfact = 1;
+	thisThumb->drawChannel(*g, rect, start, end, 1, zfact);
+	*/
 }
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
