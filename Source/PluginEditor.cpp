@@ -80,7 +80,35 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
     g.fillRect (156, 220, 308, 44);
 
     //[UserPaint] Add your own custom painting code here..
-    //[/UserPaint]
+	if (thumbalina == NULL){
+		g.setColour(Colour(0xffffdf85a5));
+		//g.fillRect(0, 0, 200, 200);
+		g.drawFittedText("so NULL text",
+			10, 160, getWidth() - 20, getHeight() / 3,
+			Justification::centred, 1);
+		g.setFont(40);
+	}
+	else{
+		g.setColour(Colour(0xffffdf85a5));
+		//g.fillRect(50, 50, 100, 100);
+		g.drawFittedText("not null text",
+			10, 160, getWidth() - 20, getHeight() / 3,
+			Justification::centred, 1);
+		g.setFont(25);
+	}
+	
+	if (thumbalina != NULL){
+		Rectangle<int> rect(0, 0, 1000, 150);
+		double start;
+		double end;
+		float zfact;
+		start = 0;
+		end = 2;
+		zfact = 2;
+		thumbalina->drawChannels(g, rect, start, end, zfact);
+	}
+	
+	//[/UserPaint]
 }
 
 void SwitcharooAudioProcessorEditor::resized()
@@ -115,11 +143,11 @@ void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked
     {
         //[UserButtonCode_textButton] -- add your button handler code here..
 		File compareFile = thisProcessor -> loadFile();
-		AudioSampleBuffer* buf = thisProcessor->processFile(compareFile);
+		//AudioSampleBuffer* buf = thisProcessor->processFile(compareFile);
 		//setting up the audioThumbnail.
 		AudioFormatManager* format = new AudioFormatManager();
 		format->registerBasicFormats();
-		setupThumb(format);
+		setupThumb(format, compareFile);
 		//[/UserButtonCode_textButton]
     }
 
@@ -127,9 +155,13 @@ void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked
     //[/UserbuttonClicked_Post]
 }
 
-void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format){
+void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File file){
 	AudioThumbnailCache cache(5);
-	AudioThumbnail * thisThumb = new AudioThumbnail(200, *format, cache);
+	thumbalina = new AudioThumbnail(200, *format, cache);
+	FileInputSource * thisFile = new FileInputSource(file);
+	//InputSource * sourceFile = thisFile->createInputStream();
+	thumbalina->setSource(thisFile);
+	
 	//AudioThumbnailBase thumb = new AudioThumbnailBase();
 	/*Graphics * g = new Graphics();
 	Rectangle<int> rect(0, 0, 200, 30);
@@ -138,9 +170,10 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format){
 	float zfact;
 	start = 0;
 	end = 30;
-	zfact = 1;
-	thisThumb->drawChannel(*g, rect, start, end, 1, zfact);
-	*/
+	zfact = 1;*/
+	//thisThumb->drawChannel(); //*g, rect, start, end, 1, zfact);
+	testGui = 40;
+	repaint();
 }
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
