@@ -74,16 +74,16 @@ public:
 
 	void RequestUIUpdate(){ UIUpdateFlag = true; };
 	void ClearUIUpdateFlag(){ UIUpdateFlag = false; };
-
+    const std::list<int>& getSlicesByAmplitude(const float[] ,const int length, std::vector<int> slices); 
+    
 	AudioSampleBuffer * processFile(File compareFile);
 	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
 	
 
 private:
     /*getSlices will modify the slices array with indexes into the channelData where each chunk of sound begins */
-    void getSlices(const float* channelData, const int length, std::vector<int> slices); 
     void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);
-	std::vector<std::pair<int, int> > getSlices(float *channelData);
+    const std::list<int>& SwitcharooAudioProcessor::getInterleavedZeroesAndPeaks(float[] signal, int length)	
 	float UserParams[totalNumParam];
 
 	bool UIUpdateFlag;
