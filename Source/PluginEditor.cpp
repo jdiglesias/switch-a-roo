@@ -22,7 +22,7 @@
 #include "JuceHeader.h"
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
-
+#include <string>
 //[MiscUserDefs] You can add your own user definitions and misc code here...
 //[/MiscUserDefs]
 
@@ -98,17 +98,32 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 	}
 	
 	if (thumbalina != NULL){
-		Rectangle<int> rect(0, 0, 1000, 150);
+		Rectangle<int> rect(20, 0, getWidth()-40, getHeight() /2);
+		g.setColour(Colour(0xcccccca5));
+		g.fillRectList(rect);
+		double len = thumbalina->getTotalLength();
 		double start;
 		double end;
 		float zfact;
 		start = 0;
-		end = 2;
-		zfact = 2;
+		end = len;
+		zfact = 1;
 		thumbalina->drawChannels(g, rect, start, end, zfact);
+		int num_samples = thumbalina->getNumSamplesFinished();
+		String lenstr = "this is the length in seconds : " + std::to_string(len) + "samples :" + std::to_string(num_samples);
+		g.setColour(Colour(0xdddddda5));
+		g.drawFittedText(lenstr,
+			10, 160, getWidth() - 20, getHeight() / 3,
+			Justification::centred, 1);
 	}
 	
 	//[/UserPaint]
+}
+/*draw time slice*/
+const Line<float> SwitcharooAudioProcessorEditor::drawTimeSlice(Rectangle<int> & areaOfOutput, int numSamples, int samplePerPixel, int indexInSamples){
+	//returns a line which you can draw.
+	Line<float> f(1, 1, 1, 1);
+	return f;
 }
 
 void SwitcharooAudioProcessorEditor::resized()
@@ -157,21 +172,19 @@ void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked
 
 void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File file){
 	AudioThumbnailCache cache(5);
-	thumbalina = new AudioThumbnail(200, *format, cache);
+	AudioFormatReader * reader = format->createReaderFor(file);
+	int numsamplesperThumb = reader->sampleRate;
+	thumbalina = new AudioThumbnail(numsamplesperThumb, *format, cache);
 	FileInputSource * thisFile = new FileInputSource(file);
 	//InputSource * sourceFile = thisFile->createInputStream();
 	thumbalina->setSource(thisFile);
 	
-	//AudioThumbnailBase thumb = new AudioThumbnailBase();
-	/*Graphics * g = new Graphics();
-	Rectangle<int> rect(0, 0, 200, 30);
-	double start;
-	double end;
-	float zfact;
-	start = 0;
-	end = 30;
-	zfact = 1;*/
-	//thisThumb->drawChannel(); //*g, rect, start, end, 1, zfact);
+	/* this will get the array of samples needed to slice*/
+	/*
+	AudioSampleBuffer * buf = new AudioSampleBuffer();
+	reader->read(buf, 0, reader->lengthInSamples, 0, true, true);
+	const float * array_of_samples= buf->getReadPointer(1);
+	*/
 	testGui = 40;
 	repaint();
 }

@@ -60,7 +60,7 @@ public:
     void sliderValueChanged (Slider* sliderThatWasMoved);
     void buttonClicked (Button* buttonThatWasClicked);
 	void setupThumb(AudioFormatManager* format, File compareFile);
-
+	const Line<float> drawTimeSlice(Rectangle<int> & areaOfOutput, int numSamples, int samplePerPixel, int indexInSamples);
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
