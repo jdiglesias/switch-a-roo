@@ -60,8 +60,8 @@ public:
     void sliderValueChanged (Slider* sliderThatWasMoved);
     void buttonClicked (Button* buttonThatWasClicked);
 	void setupThumb(AudioFormatManager* format, File compareFile);
-	const Line<float> drawTimeSlice(Rectangle<int> & areaOfOutput, int numSamples, int samplePerPixel, int indexInSamples);
-
+	const Line<float> drawTimeSlice(Rectangle<int> & areaOfOutput, int numSamples, int indexInSamples);
+	File SwitcharooAudioProcessorEditor::loadFile();
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     //[/UserVariables]
@@ -70,7 +70,7 @@ private:
     ScopedPointer<Slider> slider;
     ScopedPointer<TextButton> textButton;
 	AudioThumbnail * thumbalina = NULL;
-	int testGui;
+	int64 totalNumSamples;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessorEditor)
 };
