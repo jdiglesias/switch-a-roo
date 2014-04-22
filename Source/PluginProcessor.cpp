@@ -13,7 +13,7 @@
 #include "PluginEditor.h"
 #include <stdlib.h>
 #include <list>
-#include <cmath>
+//#include <cmath>
 //==============================================================================
 SwitcharooAudioProcessor::SwitcharooAudioProcessor()
 {
@@ -89,21 +89,21 @@ const String SwitcharooAudioProcessor::getParameterText (int index)
  * depending on whether the difference between the previous peak and the current one is large enough
  * remember, you get a zero first, then a peak.
  */
-const std::list<int>& SwitcharooAudioProcessor::getInterleavedZeroesAndPeaks(float[] signal, int length){
+ const std::list<int>& SwitcharooAudioProcessor::getInterleavedZeroesAndPeaks(const float signal[], const int length){
     int currentPeakIndex = 0;
     float currentPeakValue = signal[0];
     int sign = signal[0] >= 0 ? 1 : -1; 
-    std::list<int>& zeroesAndPeaks;
+    static std::list<int> zeroesAndPeaks = std::list<int>();
     for(int i = 0; i < length; i++){
         if(signal[i] * sign <= 0){
-            zeroesAndPeaks->push_back(i);
-            zeroesAndPeaks->push_back(currentPeakIndex);
+            zeroesAndPeaks.push_back(i);
+            zeroesAndPeaks.push_back(currentPeakIndex);
             sign *= -1;
             currentPeakValue = signal[i];
         }
         else{
             if(abs(signal[i]) > currentPeakValue){
-                currentPeakValue = abs(signal[i]);
+                currentPeakValue = std::abs(signal[i]);
                 currentPeakIndex = i;
             } 
         }
@@ -114,16 +114,16 @@ const std::list<int>& SwitcharooAudioProcessor::getInterleavedZeroesAndPeaks(flo
  * getSlices returns a list of slices into the sound. the slices are based on jumps in amplitude in the sound, 
  * large enough jumps will result in a slice at the beginning of the jump. large enough is determined by the threshold parameter
  */            
-const std::list<int>& SwitcharooAudioProcessor::getSlices(float[] signal, int length, float threshold){
-    std::list<int>& zeroesAndPeaks = getInterleavedZeroesAndPeaks(signal, length);
-    std::list<int>& slices;
+const std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float signal[],const int length, const float threshold){
+    std::list<int> zeroesAndPeaks = getInterleavedZeroesAndPeaks(signal, length);
+    static std::list<int> slices = std::list<int>();
     int currentZero;
     float lastPeak = 0;
-    for(std::list<int>::iterator i = zeroesAndPeaks->begin(); i != zeroesAndPeaks->end(); i++){
+    for(std::list<int>::iterator i = zeroesAndPeaks.begin(); i != zeroesAndPeaks.end(); i++){
         currentZero = *i;
         i++;
         if(abs(signal[*i] - lastPeak) > threshold){
-            slices->push_back(currentZero);
+            slices.push_back(currentZero);
         }
         lastPeak = signal[*i];
     }

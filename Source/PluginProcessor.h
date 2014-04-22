@@ -10,7 +10,8 @@
 
 #ifndef PLUGINPROCESSOR_H_INCLUDED
 #define PLUGINPROCESSOR_H_INCLUDED
-
+#include <list>
+#include <vector>
 #include "../JuceLibraryCode/JuceHeader.h"
 
 //==============================================================================
@@ -39,7 +40,7 @@ public:
     const String getName() const;
 
     int getNumParameters();
-    File loadFile();
+    const File loadFile();
     float getParameter (int index);
     void setParameter (int index, float newValue);
     
@@ -74,7 +75,7 @@ public:
 
 	void RequestUIUpdate(){ UIUpdateFlag = true; };
 	void ClearUIUpdateFlag(){ UIUpdateFlag = false; };
-    const std::list<int>& getSlicesByAmplitude(const float[] signal ,const int length, std::vector<int> slices);
+    const std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold);
     
 	AudioSampleBuffer * processFile(File compareFile);
 	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
@@ -83,7 +84,7 @@ public:
 private:
     /*getSlices will modify the slices array with indexes into the channelData where each chunk of sound begins */
     void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);
-    const std::list<int>& SwitcharooAudioProcessor::getInterleavedZeroesAndPeaks(float[] signal, int length);
+    const std::list<int>& getInterleavedZeroesAndPeaks(const float signal[], const int length);
 	float UserParams[totalNumParam];
 
 	bool UIUpdateFlag;
