@@ -13,7 +13,8 @@
 #include "PluginEditor.h"
 #include <stdlib.h>
 #include <list>
-//#include <cmath>
+#include <cmath>
+#include <utility> //for slice pairs std::pair
 //==============================================================================
 SwitcharooAudioProcessor::SwitcharooAudioProcessor()
 {
@@ -84,6 +85,7 @@ const String SwitcharooAudioProcessor::getParameterText (int index)
 		return String(UserParams[index]);//return parameter value as string
 	else return String::empty;
 }
+<<<<<<< HEAD
 /*
  * getInterleavedZeroesAndPeaks is called by the slicer which makes slices on zeroes,
  * depending on whether the difference between the previous peak and the current one is large enough
@@ -141,6 +143,7 @@ const File SwitcharooAudioProcessor::loadFile()
     }
     return File();
 }
+
 const String SwitcharooAudioProcessor::getInputChannelName (int channelIndex) const
 {
     return String (channelIndex + 1);

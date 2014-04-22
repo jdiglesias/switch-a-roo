@@ -76,13 +76,13 @@ public:
 	void RequestUIUpdate(){ UIUpdateFlag = true; };
 	void ClearUIUpdateFlag(){ UIUpdateFlag = false; };
     const std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold);
-    
+
 	AudioSampleBuffer * processFile(File compareFile);
 	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
 	
 
 private:
-    /*getSlices will modify the slices array with indexes into the channelData where each chunk of sound begins */
+    std::vector<int> getSegments(float* channelData, int length);
     void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);
     const std::list<int>& getInterleavedZeroesAndPeaks(const float signal[], const int length);
 	float UserParams[totalNumParam];
