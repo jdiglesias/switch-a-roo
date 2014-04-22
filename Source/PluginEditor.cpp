@@ -80,22 +80,6 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
     g.fillRect (156, 220, 308, 44);
 
     //[UserPaint] Add your own custom painting code here..
-	if (thumbalina == NULL){
-		g.setColour(Colour(0xffffdf85a5));
-		//g.fillRect(0, 0, 200, 200);
-		g.drawFittedText("so NULL text",
-			10, 160, getWidth() - 20, getHeight() / 3,
-			Justification::centred, 1);
-		g.setFont(40);
-	}
-	else{
-		g.setColour(Colour(0xffffdf85a5));
-		//g.fillRect(50, 50, 100, 100);
-		g.drawFittedText("not null text",
-			10, 160, getWidth() - 20, getHeight() / 3,
-			Justification::centred, 1);
-		g.setFont(25);
-	}
 	
 	if (thumbalina != NULL){
 		Rectangle<int> rect(20, 0, getWidth()-40, getHeight() /2);
@@ -116,26 +100,37 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 			10, 160, getWidth() - 20, getHeight() / 3,
 			Justification::centred, 1);
 		*/
-		const Line<float> testline = drawTimeSlice(rect, len, 450000);
 		g.setColour(Colour(0xff030303));
-		float lineStartX = testline.getEndX();
-		String message = "this is the topx :" + std::to_string(lineStartX) + "this is totalNumSamples: "+ std::to_string(totalNumSamples);
+		
+/*		float lineStartX = testline.getEndX(); */
+//		printf("sadflkj");
+		String message = "timeSlices? :" + std::to_string(timeSlices.size()) + " arrayOsamps (630)--" + std::to_string(arrayOsamps[630]) + " arrayOsamps (631)--" + std::to_string(arrayOsamps[631]);
+		g.setFont(15);
 		g.drawFittedText(message,
 			10, 160, getWidth() - 20, getHeight() / 3,
 			Justification::centred, 1);
+		
+		std::list<int>::iterator it;
+		for (std::list<int>::iterator it = timeSlices.begin(); it != timeSlices.end(); it++){
+			const Line<float> testline = drawTimeSlice(rect, len, *it);
+			g.drawLine(testline);
+		}
+		g.setColour(Colour(0xffcccccc));
+		const Line<float> testline = drawTimeSlice(rect, len, totalNumSamples/2);
 		g.drawLine(testline);
+
 	}
 	
 	//[/UserPaint]
 }
 /*draw time slice*/
-const Line<float> SwitcharooAudioProcessorEditor::drawTimeSlice(Rectangle<int> & areaOfOutput, int numSamples, int indexInSamples){
+const Line<float> SwitcharooAudioProcessorEditor::drawTimeSlice(Rectangle<int> & areaOfOutput, int seconds, int indexInSamples){
 	//returns a line which you can draw.
 	
 	float right = areaOfOutput.getX();
 	float topx, topy, bottomx, bottomy;
-	
-	topx = (float) right + (indexInSamples *(numSamples/ (float)totalNumSamples) /*sample rate * index + offset*/);
+//areaOfOutput.getWidth()/seconds;
+topx = (float)right + (indexInSamples / (totalNumSamples/seconds) ) * (areaOfOutput.getWidth() / seconds) /*sample rate * index + offset*/;
 	/*bottomx = (float) topx;
 	*/
 	//topy = (float) 0;
@@ -214,11 +209,13 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	thumbalina->setSource(thisFile);
 	
 	/* this will get the array of samples needed to slice*/
-	/*
-	AudioSampleBuffer * buf = new AudioSampleBuffer();
-	reader->read(buf, 0, reader->lengthInSamples, 0, true, true);
+	int64 readerStartSample = 0;
+	AudioSampleBuffer * buf = new AudioSampleBuffer(reader->numChannels,reader->lengthInSamples);
+	reader->read(buf, 1, reader->lengthInSamples, readerStartSample+1, true, true);
 	const float * array_of_samples= buf->getReadPointer(1);
-	*/
+	arrayOsamps = buf->getReadPointer(1);
+	SwitcharooAudioProcessor * thisProcessor = new SwitcharooAudioProcessor();
+	timeSlices = thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .1);
 	totalNumSamples = reader->lengthInSamples;
 	repaint();
 }

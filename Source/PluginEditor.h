@@ -59,9 +59,9 @@ public:
     void resized();
     void sliderValueChanged (Slider* sliderThatWasMoved);
     void buttonClicked (Button* buttonThatWasClicked);
-	void setupThumb(AudioFormatManager* format, File compareFile);
-	const Line<float> drawTimeSlice(Rectangle<int> & areaOfOutput, int numSamples, int indexInSamples);
-	File SwitcharooAudioProcessorEditor::loadFile();
+
+
+
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     //[/UserVariables]
@@ -69,7 +69,12 @@ private:
     //==============================================================================
     ScopedPointer<Slider> slider;
     ScopedPointer<TextButton> textButton;
+	const Line<float> drawTimeSlice(Rectangle<int> & areaOfOutput, int seconds, int indexInSamples);
 	AudioThumbnail * thumbalina = NULL;
+	const float * arrayOsamps = NULL;
+	File loadFile();
+	void setupThumb(AudioFormatManager* format, File file);
+	std::list<int> timeSlices;
 	int64 totalNumSamples;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessorEditor)

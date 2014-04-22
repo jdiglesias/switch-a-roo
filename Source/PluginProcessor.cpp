@@ -85,7 +85,7 @@ const String SwitcharooAudioProcessor::getParameterText (int index)
 		return String(UserParams[index]);//return parameter value as string
 	else return String::empty;
 }
-<<<<<<< HEAD
+
 /*
  * getInterleavedZeroesAndPeaks is called by the slicer which makes slices on zeroes,
  * depending on whether the difference between the previous peak and the current one is large enough
@@ -104,7 +104,7 @@ const String SwitcharooAudioProcessor::getParameterText (int index)
             currentPeakValue = signal[i];
         }
         else{
-            if(abs(signal[i]) > currentPeakValue){
+            if(std::abs(signal[i]) > currentPeakValue){
                 currentPeakValue = std::abs(signal[i]);
                 currentPeakIndex = i;
             } 
