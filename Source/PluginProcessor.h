@@ -80,13 +80,13 @@ public:
 	AudioSampleBuffer * processFile(File compareFile);
 	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
 	
+	std::list<int> zerosAndPeaksGlobal = std::list<int>();
 
 private:
     std::vector<int> getSegments(float* channelData, int length);
     void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);
     const std::list<int>& getInterleavedZeroesAndPeaks(const float signal[], const int length);
 	float UserParams[totalNumParam];
-
 	bool UIUpdateFlag;
 	
 	//==============================================================================

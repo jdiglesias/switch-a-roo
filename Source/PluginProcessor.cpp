@@ -101,7 +101,7 @@ const String SwitcharooAudioProcessor::getParameterText (int index)
             zeroesAndPeaks.push_back(i);
             zeroesAndPeaks.push_back(currentPeakIndex);
             sign *= -1;
-            currentPeakValue = signal[i];
+            currentPeakValue = std::abs(signal[i]);
         }
         else{
             if(std::abs(signal[i]) > currentPeakValue){
@@ -117,8 +117,12 @@ const String SwitcharooAudioProcessor::getParameterText (int index)
  * large enough jumps will result in a slice at the beginning of the jump. large enough is determined by the threshold parameter
  */            
 const std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float signal[],const int length, const float threshold){
-    std::list<int> zeroesAndPeaks = getInterleavedZeroesAndPeaks(signal, length);
-    static std::list<int> slices = std::list<int>();
+	if (zerosAndPeaksGlobal.empty()){
+		zerosAndPeaksGlobal = getInterleavedZeroesAndPeaks(signal, length);
+
+	}
+	std::list<int> zeroesAndPeaks = zerosAndPeaksGlobal;
+	static std::list<int> slices = std::list<int>();
     int currentZero;
     float lastPeak = 0;
     for(std::list<int>::iterator i = zeroesAndPeaks.begin(); i != zeroesAndPeaks.end(); i++){

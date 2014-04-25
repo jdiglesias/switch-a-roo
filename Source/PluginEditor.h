@@ -59,7 +59,7 @@ public:
     void resized();
     void sliderValueChanged (Slider* sliderThatWasMoved);
     void buttonClicked (Button* buttonThatWasClicked);
-
+	void redoTimeSlices();
 
 
 private:
@@ -76,6 +76,8 @@ private:
 	void setupThumb(AudioFormatManager* format, File file);
 	std::list<int> timeSlices;
 	int64 totalNumSamples;
+	double threshold;
+	SwitcharooAudioProcessor * thisProcessor = new SwitcharooAudioProcessor();
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessorEditor)
 };

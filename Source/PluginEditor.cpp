@@ -73,12 +73,6 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 
     g.fillAll (Colours::white);
 
-    g.setColour (Colour (0xff2aa568));
-    g.fillRect (132, 204, 356, 164);
-
-    g.setColour (Colour (0xff2a85a5));
-    g.fillRect (156, 220, 308, 44);
-
     //[UserPaint] Add your own custom painting code here..
 	
 	if (thumbalina != NULL){
@@ -104,11 +98,17 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 		
 /*		float lineStartX = testline.getEndX(); */
 //		printf("sadflkj");
-		String message = "timeSlices? :" + std::to_string(timeSlices.size()) + " arrayOsamps (630)--" + std::to_string(arrayOsamps[630]) + " arrayOsamps (631)--" + std::to_string(arrayOsamps[631]);
+		String message = "timeSlices? :(" + std::to_string(timeSlices.size())  + ")";
+			std::list<int>::iterator it1;
+
+		for (std::list<int>::iterator it1 = timeSlices.begin(); it1 != timeSlices.end(); it1++){
+			message += std::to_string(*it1) + " ,";
+		}
+			//" arrayOsamps (630)--" + std::to_string(arrayOsamps[630]) + " arrayOsamps (631)--" + std::to_string(arrayOsamps[631]);
 		g.setFont(15);
-		g.drawFittedText(message,
-			10, 160, getWidth() - 20, getHeight() / 3,
-			Justification::centred, 1);
+		g.drawMultiLineText(message,
+			getX(), (getHeight() * 2) /3,
+			getWidth());
 		
 		std::list<int>::iterator it;
 		for (std::list<int>::iterator it = timeSlices.begin(); it != timeSlices.end(); it++){
@@ -171,6 +171,8 @@ void SwitcharooAudioProcessorEditor::sliderValueChanged (Slider* sliderThatWasMo
     if (sliderThatWasMoved == slider)
     {
         //[UserSliderCode_slider] -- add your slider handling code here..
+		threshold = sliderThatWasMoved ->getValue();
+		redoTimeSlices();
         //[/UserSliderCode_slider]
     }
 
@@ -178,6 +180,10 @@ void SwitcharooAudioProcessorEditor::sliderValueChanged (Slider* sliderThatWasMo
     //[/UsersliderValueChanged_Post]
 }
 
+void SwitcharooAudioProcessorEditor::redoTimeSlices(){
+	timeSlices = thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, threshold);
+	repaint();
+}
 void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 {
     //[UserbuttonClicked_Pre]
@@ -214,8 +220,8 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	reader->read(buf, 1, reader->lengthInSamples, readerStartSample+1, true, true);
 	const float * array_of_samples= buf->getReadPointer(1);
 	arrayOsamps = buf->getReadPointer(1);
-	SwitcharooAudioProcessor * thisProcessor = new SwitcharooAudioProcessor();
-	timeSlices = thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .1);
+	
+	timeSlices = thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .65);
 	totalNumSamples = reader->lengthInSamples;
 	repaint();
 }
