@@ -121,7 +121,7 @@ const std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float
 		zerosAndPeaksGlobal = getInterleavedZeroesAndPeaks(signal, length);
 
 	}
-	std::list<int> zeroesAndPeaks = zerosAndPeaksGlobal;
+	std::list<int> zeroesAndPeaks = getInterleavedZeroesAndPeaks(signal, length);
 	static std::list<int> slices = std::list<int>();
     int currentZero;
     float lastPeak = 0;
@@ -234,6 +234,7 @@ void SwitcharooAudioProcessor::releaseResources()
 
 void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
+	processAudioBuffer(buffer);
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
    /* File compareFile = loadFile();
@@ -265,10 +266,10 @@ void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     // In case we have more outputs than inputs, we'll clear any output
     // channels that didn't contain input data, (because these aren't
     // guaranteed to be empty - they may contain garbage).
-    /*for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i)
+    for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i)
     {
         buffer.clear (i, 0, buffer.getNumSamples());
-    }*/
+    }
 }
 /*
 std::vector<std::pair<int,int> > SwitcharooAudioProcessor::getSlices(float *channelData){
@@ -328,6 +329,12 @@ void SwitcharooAudioProcessor::setStateInformation (const void* data, int sizeIn
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+
+void SwitcharooAudioProcessor::processAudioBuffer(AudioSampleBuffer& buffer){
+	testbuf = buffer;
+
 }
 
 //==============================================================================

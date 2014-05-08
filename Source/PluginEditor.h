@@ -69,7 +69,7 @@ private:
     //==============================================================================
     ScopedPointer<Slider> slider;
     ScopedPointer<TextButton> textButton;
-	const Line<float> drawTimeSlice(Rectangle<int> & areaOfOutput, int seconds, int indexInSamples);
+	const Line<float> drawTimeSlice(Rectangle<int> & areaOfOutput, double seconds, int indexInSamples);
 	AudioThumbnail * thumbalina = NULL;
 	const float * arrayOsamps = NULL;
 	File loadFile();

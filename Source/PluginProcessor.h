@@ -79,9 +79,11 @@ public:
 
 	AudioSampleBuffer * processFile(File compareFile);
 	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
-	
+	void processAudioBuffer(AudioSampleBuffer& buffer);
 	std::list<int> zerosAndPeaksGlobal = std::list<int>();
 
+	AudioSampleBuffer testbuf;
+	AudioThumbnail * inputAudioThumb = NULL;
 private:
     std::vector<int> getSegments(float* channelData, int length);
     void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);

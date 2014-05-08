@@ -68,10 +68,21 @@ SwitcharooAudioProcessorEditor::~SwitcharooAudioProcessorEditor()
 //==============================================================================
 void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 {
-    //[UserPrePaint] Add your own custom painting code here..
+    //[UserPrePaint] Add your own custom painting code here.
     //[/UserPrePaint]
 
     g.fillAll (Colours::white);
+	thisProcessor = getProcessor();
+	if (thisProcessor->testbuf.getNumChannels() > 0){
+		int dawAudioNumSamps = thisProcessor->testbuf.getNumSamples();
+		String message = "got audio data " + std::to_string(dawAudioNumSamps) + " num samples";
+		g.setFont(12);
+		g.drawMultiLineText(message,
+			getX(), (getHeight() * 2) / 3,
+			getWidth());
+
+		
+	}
 
     //[UserPaint] Add your own custom painting code here..
 	
@@ -87,18 +98,14 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 		end = len;
 		zfact = 1;
 		thumbalina->drawChannels(g, rect, start, end, zfact);
-		int num_samples = thumbalina->getNumSamplesFinished();
-		String lenstr = "this is the length in seconds : " + std::to_string(len) + "samples :" + std::to_string(num_samples);
-		g.setColour(Colour(0xdddddda5));
-	/*	g.drawFittedText(lenstr,
-			10, 160, getWidth() - 20, getHeight() / 3,
-			Justification::centred, 1);
-		*/
+		//int num_samples = thumbalina->getNumSamplesFinished();
+
 		g.setColour(Colour(0xff030303));
 		
-/*		float lineStartX = testline.getEndX(); */
-//		printf("sadflkj");
-		String message = "timeSlices? :(" + std::to_string(timeSlices.size())  + ")";
+		/*trying to get audio from processBlock*/
+
+
+/*		String message = "timeSlices? :(" + std::to_string(timeSlices.size())  + ")";
 			std::list<int>::iterator it1;
 
 		for (std::list<int>::iterator it1 = timeSlices.begin(); it1 != timeSlices.end(); it1++){
@@ -109,22 +116,34 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 		g.drawMultiLineText(message,
 			getX(), (getHeight() * 2) /3,
 			getWidth());
-		
+		*/
 		std::list<int>::iterator it;
-		for (std::list<int>::iterator it = timeSlices.begin(); it != timeSlices.end(); it++){
-			const Line<float> testline = drawTimeSlice(rect, len, *it);
-			g.drawLine(testline);
-		}
-		g.setColour(Colour(0xffcccccc));
-		const Line<float> testline = drawTimeSlice(rect, len, totalNumSamples/2);
-		g.drawLine(testline);
+	/*	if (len != 0){
 
+			for (std::list<int>::iterator it = timeSlices.begin(); it != timeSlices.end(); it++){
+				const Line<float> testline = drawTimeSlice(rect, len, *it);
+				g.drawLine(testline);
+			}
+		}*/
+		g.setColour(Colour(0xff222222));
+//		const Line<float> testline = drawTimeSlice(rect, len, totalNumSamples/2);
+	//	g.drawLine(testline);
+		std::list<int> tmp = thisProcessor->zerosAndPeaksGlobal;
+		String ms;
+		for (std::list<int>::iterator itty = tmp.begin(); itty != tmp.end(); itty++){
+			const Line<float> testline = drawTimeSlice(rect, len, *itty);
+			g.drawLine(testline);
+			ms += std::to_string(*itty) + ", ";
+		}
+//		g.drawMultiLineText(ms,
+	//		getX(), (getHeight() * 2) / 3,
+		//	getWidth());
 	}
 	
 	//[/UserPaint]
 }
 /*draw time slice*/
-const Line<float> SwitcharooAudioProcessorEditor::drawTimeSlice(Rectangle<int> & areaOfOutput, int seconds, int indexInSamples){
+const Line<float> SwitcharooAudioProcessorEditor::drawTimeSlice(Rectangle<int> & areaOfOutput, double seconds, int indexInSamples){
 	//returns a line which you can draw.
 	
 	float right = areaOfOutput.getX();
@@ -221,7 +240,7 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	const float * array_of_samples= buf->getReadPointer(1);
 	arrayOsamps = buf->getReadPointer(1);
 	
-	timeSlices = thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .65);
+	timeSlices = thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, 20.65);
 	totalNumSamples = reader->lengthInSamples;
 	repaint();
 }
