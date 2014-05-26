@@ -161,9 +161,7 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 			ms += std::to_string(*itty) + ", ";
 		}
 		*/
-		//		g.drawMultiLineText(ms,
-		//		getX(), (getHeight() * 2) / 3,
-		//	getWidth());
+
 	}
 
     //[UserPaint] Add your own custom painting code here..
@@ -199,7 +197,7 @@ void SwitcharooAudioProcessorEditor::resized()
 }
 
 void SwitcharooAudioProcessorEditor::redoTimeSlices(){
-	timeSlices = thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, threshold);
+	//timeSlices = thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, threshold, 2000);
 	repaint();
 } 
 
@@ -271,7 +269,7 @@ void SwitcharooAudioProcessorEditor::registerFFT(File file){
 	AudioSampleBuffer * buffer = new AudioSampleBuffer(reader->numChannels, reader->lengthInSamples);
 	
 	int64 readerStartSample = 0;
-	reader->read(buffer, 1, buffer->getNumSamples()-2, readerStartSample +1, true, true);
+	reader->read(buffer, 1, reader->lengthInSamples, readerStartSample +1, true, true);
 	const float * samples = buffer->getReadPointer(0);
 	int input = reader->lengthInSamples;
 
@@ -368,7 +366,7 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	int numsamplesperThumb = reader->sampleRate;
 	thumbalina = new AudioThumbnail(numsamplesperThumb, *format, cache);
 	FileInputSource * thisFile = new FileInputSource(file);
-	//InputSource * sourceFile = thisFile->createInputStream();
+
 	thumbalina->setSource(thisFile);
 
 	/* this will get the array of samples needed to slice*/
@@ -377,9 +375,11 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	reader->read(buf, 1, reader->lengthInSamples-1, readerStartSample + 1, true, true);
 	const float * array_of_samples = buf->getReadPointer(0);
 	arrayOsamps = buf->getReadPointer(1);
-
-	timeSlices = thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, 20.65);
-	totalNumSamples = reader->lengthInSamples;
+	int64 tmpTotal = reader->lengthInSamples;
+	//std::list<int> tmp_timeSlices = 
+	timeSlices=	thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .1, 1999);
+	//timeSlices = &tmp_timeSlices;
+	totalNumSamples = tmpTotal;
 	repaint();
 }
 

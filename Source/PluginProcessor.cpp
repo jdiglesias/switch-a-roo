@@ -11,9 +11,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-/*extern "C"{
-	#include "kiss_fft130\kiss_fft.h"
-}*/
+
 #include <stdlib.h>
 #include <list>
 #include <cmath>
@@ -143,12 +141,14 @@ void SwitcharooAudioProcessor::setZerosAndPeaks(const float signal[], const int 
  * getSlices returns a list of slices into the sound. the slices are based on jumps in amplitude in the sound, 
  * large enough jumps will result in a slice at the beginning of the jump. large enough is determined by the threshold parameter
  */            
-const std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float signal[],const int length, const float threshold, int minSliceLen){
+const std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float signal[],const int length,
+	const float threshold, int minSliceLen){
 	if (zerosAndPeaks.empty()){
 		setZerosAndPeaks(signal, length, 100);
 	}
 	//std::list<int> zeroesAndPeaks = zerosAndPeaksGlobal;
 	static std::list<int> slices = std::list<int>();
+	slices.push_back(0);
     int sign = zerosAndPeaks[0].peak > zerosAndPeaks[1].peak ? 1 : -1;
     int slicePoint = 0;
     int averagedChunk = 6;
@@ -159,18 +159,18 @@ const std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float
     /*for(i = zerosAndPeaks.begin(); i->zero != zerosAndPeaks[averagedChunk].zero && i != zerosAndPeaks.end(); i++){
         
     }*/
-    while(i != zerosAndPeaks.end()){
+	while(i != zerosAndPeaks.end()){
         if(std::abs(i->peak - lastZeroAndPeak->peak) * sign < 0){
             if(sign == 1){
                 slicePoint = lastZeroAndPeak->zero;
                 sign *= -1;
             }
         }
-        if(std::abs(i->peak - lastZeroAndPeak->peak) > threshold && i->zero - slices.back() > minSliceLen){
+      if(std::abs(i->peak - lastZeroAndPeak->peak) > threshold && i->zero - slices.back() > minSliceLen){
             slices.push_back(i->zero);
         }
-        lastZeroAndPeak = i;
-        i++;
+       lastZeroAndPeak = i;
+	   i++;
     }
     return slices;
 }
