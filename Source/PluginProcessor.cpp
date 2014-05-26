@@ -87,55 +87,87 @@ const String SwitcharooAudioProcessor::getParameterText (int index)
 }
 
 /*
- * getInterleavedZeroesAndPeaks is called by the slicer which makes slices on zeroes,
- * depending on whether the difference between the previous peak and the current one is large enough
- * remember, you get a zero first, then a peak.
+ * setZerosAndPeaks finds roughly where there are zero values in the waveform but tries to cancel out noise 
+ * by looking at the average of a chunk of values rather than one value at a time. It
  */
- const std::list<int>& SwitcharooAudioProcessor::getInterleavedZeroesAndPeaks(const float signal[], const int length){
-    int currentPeakIndex = 0;
-    float currentPeakValue = signal[0];
-    int sign = signal[0] >= 0 ? 1 : -1; 
-    static std::list<int> zeroesAndPeaks = std::list<int>();
-    for(int i = 0; i < length; i++){
-        if(signal[i] * sign <= 0){
-            zeroesAndPeaks.push_back(i);
-            zeroesAndPeaks.push_back(currentPeakIndex);
+void SwitcharooAudioProcessor::setZerosAndPeaks(const float signal[], const int length, int averagedChunk){
+     int currentPeakIndex = 0;
+     float currentPeakValue = signal[0];
+     float average = 0;
+     int realign = averagedChunk / 2;
+     for(int i = 0; i < averagedChunk && i<length; i++){
+         average+=signal[i];
+     }
+     int sign = average > 0 ? 1 : -1;
+     for(int i = averagedChunk; i < length; i++){
+        average += signal[i] - signal[i-averagedChunk];
+        if((average/averagedChunk) * sign <= 0){
+
             sign *= -1;
-            currentPeakValue = std::abs(signal[i]);
+            currentPeakValue = std::abs(signal[i-realign]);
+            //Move the loop forward without checking to see if the sign changes after each iteration, but still updating peak info
+            while(realign > 0 && i < length-1){
+                i++;
+                average += signal[i] - signal[i-averagedChunk];
+                if(std::abs(signal[i-averagedChunk]) > currentPeakValue){
+                    currentPeakValue = std::abs(signal[i-averagedChunk]);
+                    currentPeakIndex = i-averagedChunk;
+                }
+                realign--;
+            }
+            realign = averagedChunk / 2;
+            //Now we check if the sign changed during realignment. if not, we can commit our zero and peak.
+            if((average/averagedChunk) * sign > 0){
+                zerosAndPeaks.push_back(zeroAndPeak_t{i - averagedChunk, currentPeakValue});
+            }
+            else{
+                sign *= -1;
+            }
         }
         else{
-            if(std::abs(signal[i]) > currentPeakValue){
-                currentPeakValue = std::abs(signal[i]);
-                currentPeakIndex = i;
-            } 
+            if(std::abs(signal[i-averagedChunk]) > currentPeakValue){
+                currentPeakValue = std::abs(signal[i-averagedChunk]);
+                currentPeakIndex = i-averagedChunk;
+            }
         }
     }
-    return zeroesAndPeaks;
 }
 /*
  * getSlices returns a list of slices into the sound. the slices are based on jumps in amplitude in the sound, 
  * large enough jumps will result in a slice at the beginning of the jump. large enough is determined by the threshold parameter
  */            
-const std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float signal[],const int length, const float threshold){
-	if (zerosAndPeaksGlobal.empty()){
-		zerosAndPeaksGlobal = getInterleavedZeroesAndPeaks(signal, length);
-
+const std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float signal[],const int length, const float threshold, int minSliceLen){
+	if (zerosAndPeaks.empty()){
+		setZerosAndPeaks(signal, length, 100);
 	}
-	std::list<int> zeroesAndPeaks = getInterleavedZeroesAndPeaks(signal, length);
+	//std::list<int> zeroesAndPeaks = zerosAndPeaksGlobal;
 	static std::list<int> slices = std::list<int>();
-    int currentZero;
-    float lastPeak = 0;
-    for(std::list<int>::iterator i = zeroesAndPeaks.begin(); i != zeroesAndPeaks.end(); i++){
-        currentZero = *i;
-        i++;
-        if(abs(signal[*i] - lastPeak) > threshold){
-            slices.push_back(currentZero);
+    int sign = zerosAndPeaks[0].peak > zerosAndPeaks[1].peak ? 1 : -1;
+    int slicePoint = 0;
+    int averagedChunk = 6;
+    
+    float average;
+    std::vector<zeroAndPeak_t>::iterator i = zerosAndPeaks.begin();
+    std::vector<zeroAndPeak_t>::iterator  lastZeroAndPeak = zerosAndPeaks.begin();
+    /*for(i = zerosAndPeaks.begin(); i->zero != zerosAndPeaks[averagedChunk].zero && i != zerosAndPeaks.end(); i++){
+        
+    }*/
+    while(i != zerosAndPeaks.end()){
+        if(std::abs(i->peak - lastZeroAndPeak->peak) * sign < 0){
+            if(sign == 1){
+                slicePoint = lastZeroAndPeak->zero;
+                sign *= -1;
+            }
         }
-        lastPeak = signal[*i];
+        if(std::abs(i->peak - lastZeroAndPeak->peak) > threshold && i->zero - slices.back() > minSliceLen){
+            slices.push_back(i->zero);
+        }
+        lastZeroAndPeak = i;
+        i++;
     }
     return slices;
-    
 }
+
 const File SwitcharooAudioProcessor::loadFile()
 {
     FileChooser chooser ("Please select the file you want to load...",
