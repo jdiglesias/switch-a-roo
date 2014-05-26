@@ -13,6 +13,9 @@
 #include <list>
 #include <vector>
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "kiss_fft130/kiss_fft.h"
+#include "kiss_fft130/tools/kiss_fftr.h"
+
 
 //==============================================================================
 /**
@@ -82,8 +85,10 @@ public:
 	void processAudioBuffer(AudioSampleBuffer& buffer);
 	std::list<int> zerosAndPeaksGlobal = std::list<int>();
 
+	float * doFFT(const float signal[], int sigLen);
+
 	AudioSampleBuffer testbuf;
-	AudioThumbnail * inputAudioThumb = NULL;
+	int num_blocks =0;
 private:
     std::vector<int> getSegments(float* channelData, int length);
     void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);

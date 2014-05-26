@@ -59,16 +59,17 @@ public:
     void resized();
     void sliderValueChanged (Slider* sliderThatWasMoved);
     void buttonClicked (Button* buttonThatWasClicked);
-	void redoTimeSlices();
 
+	void redoTimeSlices();
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
-    //[/UserVariables]
-
-    //==============================================================================
-    ScopedPointer<Slider> slider;
-    ScopedPointer<TextButton> textButton;
+	int fundamental;
+	int fftLength;
+	String global_reals;
+	String global_img;
+	int isSetTest = 0;
+	float * fftRet = NULL;
 	const Line<float> drawTimeSlice(Rectangle<int> & areaOfOutput, double seconds, int indexInSamples);
 	AudioThumbnail * thumbalina = NULL;
 	const float * arrayOsamps = NULL;
@@ -78,6 +79,16 @@ private:
 	int64 totalNumSamples;
 	double threshold;
 	SwitcharooAudioProcessor * thisProcessor = new SwitcharooAudioProcessor();
+	void registerFFT(File file);
+	void doTestFFT(int N, float amplitude);
+    //[/UserVariables]
+
+    //==============================================================================
+    ScopedPointer<Slider> slider;
+    ScopedPointer<TextButton> textButton;
+    ScopedPointer<TextButton> dofft;
+
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessorEditor)
 };

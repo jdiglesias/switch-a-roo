@@ -11,11 +11,18 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+/*extern "C"{
+	#include "kiss_fft130\kiss_fft.h"
+}*/
 #include <stdlib.h>
 #include <list>
 #include <cmath>
+#include <complex>
+
 #include <utility> //for slice pairs std::pair
 //==============================================================================
+
+
 SwitcharooAudioProcessor::SwitcharooAudioProcessor()
 {
 	UserParams[MasterBypass] = 0.0f;//default to not bypassed
@@ -234,7 +241,7 @@ void SwitcharooAudioProcessor::releaseResources()
 
 void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
-	processAudioBuffer(buffer);
+	//processAudioBuffer(buffer);
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
    /* File compareFile = loadFile();
@@ -266,10 +273,10 @@ void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     // In case we have more outputs than inputs, we'll clear any output
     // channels that didn't contain input data, (because these aren't
     // guaranteed to be empty - they may contain garbage).
-    for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i)
-    {
-        buffer.clear (i, 0, buffer.getNumSamples());
-    }
+//    for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i)
+  //  {
+    //    buffer.clear (i, 0, buffer.getNumSamples());
+    //}
 }
 /*
 std::vector<std::pair<int,int> > SwitcharooAudioProcessor::getSlices(float *channelData){
@@ -334,9 +341,44 @@ void SwitcharooAudioProcessor::setStateInformation (const void* data, int sizeIn
 
 void SwitcharooAudioProcessor::processAudioBuffer(AudioSampleBuffer& buffer){
 	testbuf = buffer;
-
+	num_blocks++;
 }
 
+
+float * SwitcharooAudioProcessor::doFFT(const float signal[], int signalLength){
+	//setting up this cfg will optimize the speed at which this gets processed.
+	kiss_fftr_cfg cfg = kiss_fftr_alloc(signalLength * 2,0,NULL,NULL);
+//might need to change bc this may not be big enough
+	//kiss_fft_scalar fin[100000];
+	kiss_fft_scalar * fin = new kiss_fft_scalar[signalLength];
+	//kiss_fft_cpx * fout = (kiss_fft_cpx *)malloc(sizeof(kiss_fft_cpx) * (signalLength/2 +1))
+		kiss_fft_cpx * fout =	new kiss_fft_cpx[signalLength / 2 + 1];
+	//kiss_fft_cpx fout[50001];
+	//std::complex<float> * out = (std::complex<float> *) malloc(sizeof(std::complex<float>) * (signalLength/2 +1));
+	for (int j = 0; j < signalLength; j++){
+		fin[j] = signal[j];
+	}
+
+	kiss_fftr(cfg, fin, fout);
+	float * fftSignal= new float[signalLength/2 +1]();
+
+//	float fftSignal[1024];
+	// only show the real signal that was returned... not the imaginary.
+	int real = 0;
+	for (int k = 0; k < (signalLength/2)+1; k++){
+		if (fout[k].r < 0){
+			real = fout[k].r * -1;
+		}else {
+			real = fout[k].r;
+		}
+		fftSignal[k] = sqrt(real) +(fout[k].i * fout[k].i);
+	}
+
+	//delete(&cfg);
+
+	return fftSignal;
+
+}
 //==============================================================================
 // This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()

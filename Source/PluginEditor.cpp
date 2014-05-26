@@ -19,12 +19,14 @@
 
 //[Headers] You can add your own extra header files here...
 //[/Headers]
-#include "JuceHeader.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "PluginEditor.h"
-#include "PluginProcessor.h"
 #include <string>
+
 //[MiscUserDefs] You can add your own user definitions and misc code here...
 //[/MiscUserDefs]
+
 
 //==============================================================================
 SwitcharooAudioProcessorEditor::SwitcharooAudioProcessorEditor (SwitcharooAudioProcessor* ownerFilter)
@@ -39,11 +41,15 @@ SwitcharooAudioProcessorEditor::SwitcharooAudioProcessorEditor (SwitcharooAudioP
     addAndMakeVisible (textButton = new TextButton ("new button"));
     textButton->addListener (this);
 
+    addAndMakeVisible (dofft = new TextButton ("do fft"));
+    dofft->setButtonText (TRANS("new button"));
+    dofft->addListener (this);
+
 
     //[UserPreSize]
     //[/UserPreSize]
 
-    setSize (600, 400);
+    setSize (900, 800);
 
 
     //[Constructor] You can add your own custom stuff here..
@@ -59,6 +65,7 @@ SwitcharooAudioProcessorEditor::~SwitcharooAudioProcessorEditor()
 
     slider = nullptr;
     textButton = nullptr;
+    dofft = nullptr;
 
 
     //[Destructor]. You can add your own custom destruction code here..
@@ -68,26 +75,44 @@ SwitcharooAudioProcessorEditor::~SwitcharooAudioProcessorEditor()
 //==============================================================================
 void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 {
-    //[UserPrePaint] Add your own custom painting code here.
+    //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
     g.fillAll (Colours::white);
-	thisProcessor = getProcessor();
-	if (thisProcessor->testbuf.getNumChannels() > 0){
-		int dawAudioNumSamps = thisProcessor->testbuf.getNumSamples();
-		String message = "got audio data " + std::to_string(dawAudioNumSamps) + " num samples";
-		g.setFont(12);
-		g.drawMultiLineText(message,
-			getX(), (getHeight() * 2) / 3,
+	if (isSetTest == 1){
+		g.drawMultiLineText(
+			"imaginaries " + global_img + " reals " + global_reals,
+			getX(), 20,
 			getWidth());
-
+	}
+	if (fftRet != NULL){
+		String msg;
+		/*for (int i = 0; i < 1000 ; i++){
+			msg = msg + std::to_string(fftRet[i]) + ",";
+		}
+		g.drawMultiLineText("got a fast fourier transform: " + msg,
+			getX(), 20,
+			getWidth());*/
+		int skipped = 0;
+		msg = "";
+		//prints a ratio of fundamentals
+		for (int j = 0; j < fftLength; j++){
+			if (!((int)fftRet[j] <= 0)){
+				msg = msg + std::to_string(fftRet[j]/fundamental) + " ,";
+			}
+			else {
+				msg = msg + " _ ";
+				skipped++;
+			}
+			//msg = msg + std::to_string(arrayOsamps[j]) + ", ";
+		}
+		g.drawMultiLineText("fftLength: " + std::to_string(fftLength) +" , skipped: "+std::to_string(skipped)+ " frequencies:" + msg,
+			getX(), 20, //getHeight() /2,
+			getWidth());
 		
 	}
-
-    //[UserPaint] Add your own custom painting code here..
-	
 	if (thumbalina != NULL){
-		Rectangle<int> rect(20, 0, getWidth()-40, getHeight() /2);
+		Rectangle<int> rect(20, 0, getWidth() - 40, getHeight() / 2);
 		g.setColour(Colour(0xcccccca5));
 		g.fillRectList(rect);
 		double len = thumbalina->getTotalLength();
@@ -101,33 +126,33 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 		//int num_samples = thumbalina->getNumSamplesFinished();
 
 		g.setColour(Colour(0xff030303));
-		
+
 		/*trying to get audio from processBlock*/
 
 
-/*		String message = "timeSlices? :(" + std::to_string(timeSlices.size())  + ")";
-			std::list<int>::iterator it1;
+		/*		String message = "timeSlices? :(" + std::to_string(timeSlices.size())  + ")";
+		std::list<int>::iterator it1;
 
 		for (std::list<int>::iterator it1 = timeSlices.begin(); it1 != timeSlices.end(); it1++){
-			message += std::to_string(*it1) + " ,";
+		message += std::to_string(*it1) + " ,";
 		}
-			//" arrayOsamps (630)--" + std::to_string(arrayOsamps[630]) + " arrayOsamps (631)--" + std::to_string(arrayOsamps[631]);
+		//" arrayOsamps (630)--" + std::to_string(arrayOsamps[630]) + " arrayOsamps (631)--" + std::to_string(arrayOsamps[631]);
 		g.setFont(15);
 		g.drawMultiLineText(message,
-			getX(), (getHeight() * 2) /3,
-			getWidth());
+		getX(), (getHeight() * 2) /3,
+		getWidth());
 		*/
 		std::list<int>::iterator it;
-	/*	if (len != 0){
+		if (len != 0){
 
 			for (std::list<int>::iterator it = timeSlices.begin(); it != timeSlices.end(); it++){
 				const Line<float> testline = drawTimeSlice(rect, len, *it);
 				g.drawLine(testline);
 			}
-		}*/
-		g.setColour(Colour(0xff222222));
-//		const Line<float> testline = drawTimeSlice(rect, len, totalNumSamples/2);
-	//	g.drawLine(testline);
+		}
+/*		g.setColour(Colour(0xff222222));
+		//		const Line<float> testline = drawTimeSlice(rect, len, totalNumSamples/2);
+		//	g.drawLine(testline);
 		std::list<int> tmp = thisProcessor->zerosAndPeaksGlobal;
 		String ms;
 		for (std::list<int>::iterator itty = tmp.begin(); itty != tmp.end(); itty++){
@@ -135,29 +160,32 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 			g.drawLine(testline);
 			ms += std::to_string(*itty) + ", ";
 		}
-//		g.drawMultiLineText(ms,
-	//		getX(), (getHeight() * 2) / 3,
+		*/
+		//		g.drawMultiLineText(ms,
+		//		getX(), (getHeight() * 2) / 3,
 		//	getWidth());
 	}
-	
-	//[/UserPaint]
+
+    //[UserPaint] Add your own custom painting code here..
+    //[/UserPaint]
 }
+
 /*draw time slice*/
 const Line<float> SwitcharooAudioProcessorEditor::drawTimeSlice(Rectangle<int> & areaOfOutput, double seconds, int indexInSamples){
 	//returns a line which you can draw.
-	
+
 	float right = areaOfOutput.getX();
 	float topx, topy, bottomx, bottomy;
-//areaOfOutput.getWidth()/seconds;
-topx = (float)right + (indexInSamples / (totalNumSamples/seconds) ) * (areaOfOutput.getWidth() / seconds) /*sample rate * index + offset*/;
+	//areaOfOutput.getWidth()/seconds;
+	topx = (float)right + (indexInSamples / (totalNumSamples / seconds)) * (areaOfOutput.getWidth() / seconds) /*sample rate * index + offset*/;
 	/*bottomx = (float) topx;
 	*/
 	//topy = (float) 0;
-	
-	bottomy = (float) areaOfOutput.getBottom();
-	
+
+	bottomy = (float)areaOfOutput.getBottom();
+
 	Line<float> f(topx, 0.0, topx, bottomy);
-	
+
 	return f;
 }
 
@@ -165,22 +193,15 @@ void SwitcharooAudioProcessorEditor::resized()
 {
     slider->setBounds (241, 320, 150, 24);
     textButton->setBounds (233, 280, 150, 24);
+    dofft->setBounds (232, 392, 150, 24);
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
 
-
-File SwitcharooAudioProcessorEditor::loadFile()
-{
-	FileChooser chooser("Please select the file you want to load...",
-		File::getSpecialLocation(File::userHomeDirectory));
-	if (chooser.browseForFileToOpen())
-	{
-		File file(chooser.getResult());
-		return file;
-	}
-	return File();
-}
+void SwitcharooAudioProcessorEditor::redoTimeSlices(){
+	timeSlices = thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, threshold);
+	repaint();
+} 
 
 void SwitcharooAudioProcessorEditor::sliderValueChanged (Slider* sliderThatWasMoved)
 {
@@ -199,29 +220,146 @@ void SwitcharooAudioProcessorEditor::sliderValueChanged (Slider* sliderThatWasMo
     //[/UsersliderValueChanged_Post]
 }
 
-void SwitcharooAudioProcessorEditor::redoTimeSlices(){
-	timeSlices = thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, threshold);
-	repaint();
-}
 void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 {
     //[UserbuttonClicked_Pre]
     //[/UserbuttonClicked_Pre]
-	//SwitcharooAudioProcessor * thisProcessor = new SwitcharooAudioProcessor();
+
     if (buttonThatWasClicked == textButton)
     {
-        //[UserButtonCode_textButton] -- add your button handler code here..
 		File compareFile = loadFile();
-		//AudioSampleBuffer* buf = thisProcessor->processFile(compareFile);
 		//setting up the audioThumbnail.
-		AudioFormatManager* format = new AudioFormatManager();
-		format->registerBasicFormats();
-		setupThumb(format, compareFile);
-		//[/UserButtonCode_textButton]
-    }
-
+		if (compareFile != File()){
+			AudioFormatManager* format = new AudioFormatManager();
+			format->registerBasicFormats();
+			setupThumb(format, compareFile);
+		}
+	}
+    else if (buttonThatWasClicked == dofft)
+    {
+		File compFile = loadFile();
+		if (compFile != File()){
+			registerFFT(compFile);
+			repaint();
+		}
+		/*
+		doTestFFT(8, 1);
+		repaint();
+	*/
+	}
+	
     //[UserbuttonClicked_Post]
     //[/UserbuttonClicked_Post]
+}
+
+File SwitcharooAudioProcessorEditor::loadFile()
+{
+	FileChooser chooser("Please select the file you want to load...",
+		File::getSpecialLocation(File::userHomeDirectory));
+	if (chooser.browseForFileToOpen())
+	{
+		File file(chooser.getResult());
+		return file;
+	}
+	return File();
+}
+
+void SwitcharooAudioProcessorEditor::registerFFT(File file){
+	AudioFormatManager * format = new AudioFormatManager();
+	format->registerBasicFormats();
+	AudioFormatReader * reader = format->createReaderFor(file);
+	AudioSampleBuffer * buffer = new AudioSampleBuffer(reader->numChannels, reader->lengthInSamples);
+	
+	int64 readerStartSample = 0;
+	reader->read(buffer, 1, buffer->getNumSamples()-2, readerStartSample +1, true, true);
+	const float * samples = buffer->getReadPointer(0);
+	int input = reader->lengthInSamples;
+
+	int nextPow2 = 1;
+	//read in musi-math need for optimization
+	while (nextPow2 < input) {
+		nextPow2 *= 2;
+	}
+
+	kiss_fftr_cfg cfg = kiss_fftr_alloc(nextPow2, 0, NULL, NULL);
+	kiss_fft_scalar * fin = new kiss_fft_scalar[nextPow2];	
+	kiss_fft_cpx * fout = new kiss_fft_cpx[(nextPow2 / 2) + 1];
+
+	/*ignore first sample might be header data*/
+	for (int j = 1; j < input; j++){
+		fin[j] = samples[j];
+	}
+	//pad out next part to make the signal a power of two.
+	int temp_input = input+1;
+	while (temp_input < nextPow2){
+		fin[temp_input] = 0;
+		temp_input++;
+	}
+
+	float * fftSignal = new float[(nextPow2 / 2) + 1]();
+	float * fftFreqs = new float[(nextPow2 / 2) + 1]();
+
+
+	kiss_fftr(cfg, fin, fout);
+	fundamental = 0;
+	float cur_real, cur_img;
+	float real = 0;
+	for (int k = 0; k < (nextPow2 / 2) + 1; k++){
+		cur_real = fout[k].r / (nextPow2 / 2);
+		cur_img = fout[k].i / (nextPow2 / 2);
+
+		real = (cur_real * cur_real) + (cur_img * cur_img);
+	/*	if (real < 0){
+			real = real * -1;
+		}*/
+		/*i think we need to normalize the data...normalize*/
+		//fftSignal[k] = fout[k].r/ nextPow2;
+		//fftSignal[k] = fout[k].i / nextPow2;
+		//fftSignal[k] = (sqrt(real) + (fout[k].i * fout[k].i))- 20775;
+		fftSignal[k] = sqrt(real);
+		if (fundamental < sqrt(real)){
+			fundamental = sqrt(real);
+		}
+	}
+	fftLength = (nextPow2 / 2) + 1;
+	fftRet = fftSignal;
+//	fftRet = thisProcessor->doFFT(samples, reader->lengthInSamples);
+
+
+}
+
+void SwitcharooAudioProcessorEditor::doTestFFT(int N, float amplitude){
+	kiss_fftr_cfg cfg = kiss_fftr_alloc(N, 0, NULL, NULL);
+	kiss_fft_scalar * fin = new kiss_fft_scalar[N];
+	kiss_fft_cpx * fout = new kiss_fft_cpx[(N / 2) + 1];
+
+	float * values = new float[8];
+	values[0] = amplitude / 2;
+	values[1] = amplitude;
+	values[2] =  amplitude /2;
+	values[3] = 0;
+	values[4] = -amplitude / 2;
+	values[5] = -amplitude;
+	values[6] = -amplitude / 2;
+	values[7] = 0;
+
+	for (int i = 0; i < N; i++){
+		fin[i] = values[i % 8];
+	}
+
+	String imagine;
+	String reals;
+
+	kiss_fftr(cfg, fin, fout);
+
+	for (int j = 0; j < (N/2) +1; j++){
+		imagine = imagine + std::to_string(fout[j].i) + ",";
+		reals = reals + std::to_string(fout[j].r) + ",";
+		//amplitude = std::to_string(fouttest[i]) + ",";
+	}
+	global_img = imagine;
+	global_reals = reals;
+	isSetTest = 1;
 }
 
 void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File file){
@@ -232,14 +370,14 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	FileInputSource * thisFile = new FileInputSource(file);
 	//InputSource * sourceFile = thisFile->createInputStream();
 	thumbalina->setSource(thisFile);
-	
+
 	/* this will get the array of samples needed to slice*/
 	int64 readerStartSample = 0;
-	AudioSampleBuffer * buf = new AudioSampleBuffer(reader->numChannels,reader->lengthInSamples);
-	reader->read(buf, 1, reader->lengthInSamples, readerStartSample+1, true, true);
-	const float * array_of_samples= buf->getReadPointer(1);
+	AudioSampleBuffer * buf = new AudioSampleBuffer(reader->numChannels, reader->lengthInSamples);
+	reader->read(buf, 1, reader->lengthInSamples-1, readerStartSample + 1, true, true);
+	const float * array_of_samples = buf->getReadPointer(0);
 	arrayOsamps = buf->getReadPointer(1);
-	
+
 	timeSlices = thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, 20.65);
 	totalNumSamples = reader->lengthInSamples;
 	repaint();
@@ -292,6 +430,9 @@ BEGIN_JUCER_METADATA
           textBoxWidth="80" textBoxHeight="20" skewFactor="1"/>
   <TEXTBUTTON name="new button" id="3b1e3b9b40732afd" memberName="textButton"
               virtualName="" explicitFocusOrder="0" pos="233 280 150 24" buttonText="new button"
+              connectedEdges="0" needsCallback="1" radioGroupId="0"/>
+  <TEXTBUTTON name="do fft" id="6647447847dc514e" memberName="dofft" virtualName=""
+              explicitFocusOrder="0" pos="232 392 150 24" buttonText="new button"
               connectedEdges="0" needsCallback="1" radioGroupId="0"/>
 </JUCER_COMPONENT>
 
