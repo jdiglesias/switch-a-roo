@@ -78,21 +78,28 @@ public:
 
 	void RequestUIUpdate(){ UIUpdateFlag = true; };
 	void ClearUIUpdateFlag(){ UIUpdateFlag = false; };
-    const std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold);
+    const std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold, int minSliceLen);
 
 	AudioSampleBuffer * processFile(File compareFile);
 	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
 	void processAudioBuffer(AudioSampleBuffer& buffer);
 	std::list<int> zerosAndPeaksGlobal = std::list<int>();
-
 	float * doFFT(const float signal[], int sigLen);
+
+
+    typedef struct zeroAndPeak{
+        int zero;
+        float peak;
+    } zeroAndPeak_t;
+    
 
 	AudioSampleBuffer testbuf;
 	int num_blocks =0;
 private:
     std::vector<int> getSegments(float* channelData, int length);
+    std::vector<zeroAndPeak_t> zerosAndPeaks = std::vector<zeroAndPeak_t>();
     void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);
-    const std::list<int>& getInterleavedZeroesAndPeaks(const float signal[], const int length);
+    void setZerosAndPeaks(const float signal[], const int length, int averagedChunk);
 	float UserParams[totalNumParam];
 	bool UIUpdateFlag;
 	
