@@ -13,6 +13,7 @@
 #include <list>
 #include <vector>
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "fftContainer.h"
 #include "kiss_fft130/kiss_fft.h"
 #include "kiss_fft130/tools/kiss_fftr.h"
 
@@ -80,13 +81,21 @@ public:
 	void ClearUIUpdateFlag(){ UIUpdateFlag = false; };
     const std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold, int minSliceLen);
 
+	typedef struct fft{
+		int length;
+		float fundamental;
+		float * amplitudes;
+	} fft_t;
+
+	int time_slice_loop;
 	AudioSampleBuffer * processFile(File compareFile);
 	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
 	void processAudioBuffer(AudioSampleBuffer& buffer);
 	std::list<int> zerosAndPeaksGlobal = std::list<int>();
-	float * doFFT(const float signal[], int sigLen);
-
-
+	fftContainer * doFFT(const float * signal, int sigLen);
+	void doFFTtoSlices(std::list<int> timslices, const float * signal, int signalLength);
+	std::vector<fftContainer> fftVector = std::vector<fftContainer>();
+	
     typedef struct zeroAndPeak{
         int zero;
         float peak;
@@ -102,7 +111,7 @@ private:
     void setZerosAndPeaks(const float signal[], const int length, int averagedChunk);
 	float UserParams[totalNumParam];
 	bool UIUpdateFlag;
-	
+
 	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessor)
 };

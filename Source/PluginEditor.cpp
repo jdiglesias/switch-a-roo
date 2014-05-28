@@ -1,4 +1,4 @@
-/*
+﻿/*
   ==============================================================================
 
   This is an automatically generated GUI class created by the Introjucer!
@@ -85,28 +85,50 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 			getX(), 20,
 			getWidth());
 	}
-	if (fftRet != NULL){
-		String msg;
-		/*for (int i = 0; i < 1000 ; i++){
-			msg = msg + std::to_string(fftRet[i]) + ",";
+	if (!thisProcessor->fftVector.empty()){
+		String msg = "amount of ffts ="+ std::to_string(thisProcessor->fftVector.size()) +"\n";
+		for (int i = 0; i <= thisProcessor->fftVector.size()-1; i++){
+			//get length
+			int thisFFTlen = thisProcessor->fftVector[i].length;
+			float thisFFTfund = thisProcessor->fftVector[i].fundamental;
+			String ffts = "";
+			for (int j = 0; j < 20; j++){
+				ffts = ffts + std::to_string(thisProcessor->fftVector[i].amplitudes[j]) + ", ";
+			}
+			
+			msg = msg + "FFT-" + std::to_string(i) + " length:" + std::to_string(thisFFTlen) + 
+				" fundamental:" + std::to_string(thisFFTfund) +" first 20 ffts:" + ffts +"\n";
 		}
-		g.drawMultiLineText("got a fast fourier transform: " + msg,
-			getX(), 20,
-			getWidth());*/
+		g.drawMultiLineText(msg,
+			getX(), (getHeight() *2)/3,
+			getWidth());
+
+	}
+	if (retFFT != NULL){
+		String msg;
 		int skipped = 0;
 		msg = "";
 		//prints a ratio of fundamentals
-		for (int j = 0; j < fftLength; j++){
-			if (!((int)fftRet[j] <= 0)){
-				msg = msg + std::to_string(fftRet[j]/fundamental) + " ,";
+		int length = retFFT->length;
+		float fund = retFFT->fundamental;
+		float * retSignal = retFFT->amplitudes;
+		if (length > 1000){
+			length = 1000;
+		} 
+		for (int j = 0; j < 20; j++){
+			if (!((int)retSignal[j] <= 0)){
+				msg = msg + std::to_string(retSignal[j]/fund) + " ,";
 			}
 			else {
 				msg = msg + " _ ";
 				skipped++;
 			}
+
+			//msg = msg + "AUDIO" +std::to_string(retFFT->rawAudio[j]) + ",";
 			//msg = msg + std::to_string(arrayOsamps[j]) + ", ";
 		}
-		g.drawMultiLineText("fftLength: " + std::to_string(fftLength) +" , skipped: "+std::to_string(skipped)+ " frequencies:" + msg,
+		
+		g.drawMultiLineText("fftLength: " + std::to_string(retFFT->length) +" , skipped: "+std::to_string(skipped)+ " frequencies:" + msg,
 			getX(), 20, //getHeight() /2,
 			getWidth());
 		
@@ -269,61 +291,11 @@ void SwitcharooAudioProcessorEditor::registerFFT(File file){
 	AudioSampleBuffer * buffer = new AudioSampleBuffer(reader->numChannels, reader->lengthInSamples);
 	
 	int64 readerStartSample = 0;
-	reader->read(buffer, 1, reader->lengthInSamples, readerStartSample +1, true, true);
+	reader->read(buffer, 1, reader->lengthInSamples -1, readerStartSample +1, true, true);
 	const float * samples = buffer->getReadPointer(0);
 	int input = reader->lengthInSamples;
-
-	int nextPow2 = 1;
-	//read in musi-math need for optimization
-	while (nextPow2 < input) {
-		nextPow2 *= 2;
-	}
-
-	kiss_fftr_cfg cfg = kiss_fftr_alloc(nextPow2, 0, NULL, NULL);
-	kiss_fft_scalar * fin = new kiss_fft_scalar[nextPow2];	
-	kiss_fft_cpx * fout = new kiss_fft_cpx[(nextPow2 / 2) + 1];
-
-	/*ignore first sample might be header data*/
-	for (int j = 1; j < input; j++){
-		fin[j] = samples[j];
-	}
-	//pad out next part to make the signal a power of two.
-	int temp_input = input+1;
-	while (temp_input < nextPow2){
-		fin[temp_input] = 0;
-		temp_input++;
-	}
-
-	float * fftSignal = new float[(nextPow2 / 2) + 1]();
-	float * fftFreqs = new float[(nextPow2 / 2) + 1]();
-
-
-	kiss_fftr(cfg, fin, fout);
-	fundamental = 0;
-	float cur_real, cur_img;
-	float real = 0;
-	for (int k = 0; k < (nextPow2 / 2) + 1; k++){
-		cur_real = fout[k].r / (nextPow2 / 2);
-		cur_img = fout[k].i / (nextPow2 / 2);
-
-		real = (cur_real * cur_real) + (cur_img * cur_img);
-	/*	if (real < 0){
-			real = real * -1;
-		}*/
-		/*i think we need to normalize the data...normalize*/
-		//fftSignal[k] = fout[k].r/ nextPow2;
-		//fftSignal[k] = fout[k].i / nextPow2;
-		//fftSignal[k] = (sqrt(real) + (fout[k].i * fout[k].i))- 20775;
-		fftSignal[k] = sqrt(real);
-		if (fundamental < sqrt(real)){
-			fundamental = sqrt(real);
-		}
-	}
-	fftLength = (nextPow2 / 2) + 1;
-	fftRet = fftSignal;
-//	fftRet = thisProcessor->doFFT(samples, reader->lengthInSamples);
-
-
+	fftContainer * ret = thisProcessor->doFFT(samples, reader->lengthInSamples);
+	retFFT = ret;
 }
 
 void SwitcharooAudioProcessorEditor::doTestFFT(int N, float amplitude){
@@ -374,12 +346,13 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	AudioSampleBuffer * buf = new AudioSampleBuffer(reader->numChannels, reader->lengthInSamples);
 	reader->read(buf, 1, reader->lengthInSamples-1, readerStartSample + 1, true, true);
 	const float * array_of_samples = buf->getReadPointer(0);
-	arrayOsamps = buf->getReadPointer(1);
+	arrayOsamps = buf->getReadPointer(0);
 	int64 tmpTotal = reader->lengthInSamples;
-	//std::list<int> tmp_timeSlices = 
+//to display audio
 	timeSlices=	thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .1, 1999);
-	//timeSlices = &tmp_timeSlices;
 	totalNumSamples = tmpTotal;
+//to slices to fft
+	thisProcessor->doFFTtoSlices(timeSlices, array_of_samples, reader->lengthInSamples);
 	repaint();
 }
 

@@ -64,7 +64,8 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
-	int fundamental;
+	vector<fftContainer> * transforms = NULL;
+	fftContainer *retFFT = NULL;
 	int fftLength;
 	String global_reals;
 	String global_img;
