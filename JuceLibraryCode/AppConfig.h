@@ -27,6 +27,7 @@
 #define JUCE_MODULE_AVAILABLE_juce_audio_formats            1
 #define JUCE_MODULE_AVAILABLE_juce_audio_plugin_client      1
 #define JUCE_MODULE_AVAILABLE_juce_audio_processors         1
+#define JUCE_MODULE_AVAILABLE_juce_audio_utils              1
 #define JUCE_MODULE_AVAILABLE_juce_core                     1
 #define JUCE_MODULE_AVAILABLE_juce_cryptography             1
 #define JUCE_MODULE_AVAILABLE_juce_data_structures          1
@@ -219,7 +220,13 @@
  #define JucePlugin_Desc                   "switcharoo"
 #endif
 #ifndef  JucePlugin_Manufacturer
- #define JucePlugin_Manufacturer           "yourcompany"
+ #define JucePlugin_Manufacturer           "scoobydoo"
+#endif
+#ifndef  JucePlugin_ManufacturerWebsite
+ #define JucePlugin_ManufacturerWebsite    ""
+#endif
+#ifndef  JucePlugin_ManufacturerEmail
+ #define JucePlugin_ManufacturerEmail      ""
 #endif
 #ifndef  JucePlugin_ManufacturerCode
  #define JucePlugin_ManufacturerCode       'Manu'
@@ -282,7 +289,7 @@
  #define JucePlugin_AUManufacturerCode     JucePlugin_ManufacturerCode
 #endif
 #ifndef  JucePlugin_CFBundleIdentifier
- #define JucePlugin_CFBundleIdentifier     com.yourcompany.switcharoo
+ #define JucePlugin_CFBundleIdentifier     com.scoobydoo.switcharoo
 #endif
 #ifndef  JucePlugin_RTASCategory
  #define JucePlugin_RTASCategory           ePlugInCategory_None
@@ -308,14 +315,14 @@
 #ifndef  JucePlugin_AAXProductId
  #define JucePlugin_AAXProductId           JucePlugin_PluginCode
 #endif
-#ifndef  JucePlugin_AAXPluginId
- #define JucePlugin_AAXPluginId            JucePlugin_PluginCode
-#endif
 #ifndef  JucePlugin_AAXCategory
  #define JucePlugin_AAXCategory            AAX_ePlugInCategory_Dynamics
 #endif
 #ifndef  JucePlugin_AAXDisableBypass
  #define JucePlugin_AAXDisableBypass       0
+#endif
+#ifndef  JucePlugin_AAXDisableMultiMono
+ #define JucePlugin_AAXDisableMultiMono    0
 #endif
 
 #endif  // __JUCE_APPCONFIG_GQJION__

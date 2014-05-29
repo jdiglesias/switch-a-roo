@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="gQjIoN" name="switcharoo" projectType="audioplug" version="1.0.0"
-              bundleIdentifier="com.yourcompany.switcharoo" includeBinaryInAppConfig="1"
+              bundleIdentifier="com.scoobydoo.switcharoo" includeBinaryInAppConfig="1"
               buildVST="1" buildAU="1" pluginName="switcharoo" pluginDesc="switcharoo"
-              pluginManufacturer="yourcompany" pluginManufacturerCode="Manu"
+              pluginManufacturer="scoobydoo" pluginManufacturerCode="Manu"
               pluginCode="Plug" pluginChannelConfigs="{1, 1}, {2, 2}" pluginIsSynth="0"
               pluginWantsMidiIn="0" pluginProducesMidiOut="0" pluginSilenceInIsSilenceOut="0"
               pluginEditorRequiresKeys="0" pluginAUExportPrefix="switcharooAU"
               pluginRTASCategory="" aaxIdentifier="com.yourcompany.switcharoo"
-              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="3.1.0">
+              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="3.1.0"
+              buildVST3="0" buildRTAS="0" buildAAX="0">
   <MAINGROUP id="unL3Um" name="switcharoo">
     <GROUP id="{66242FC6-69F6-A2B4-6E6C-EA60B4E912E4}" name="Source">
       <FILE id="Gb6jCY" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -43,6 +44,7 @@
         <MODULEPATH id="juce_audio_formats" path="../../../../Applications/Audacity/plug-ins/JUCE/modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../../../Applications/Audacity/plug-ins/JUCE/modules"/>
         <MODULEPATH id="juce_audio_plugin_client" path="../../../../Applications/Audacity/plug-ins/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../../Applications/Audacity/plug-ins/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
@@ -52,6 +54,7 @@
     <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="1"/>
     <MODULES id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="1"/>
     <MODULES id="juce_audio_processors" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_utils" showAllCode="1" useLocalCopy="1"/>
     <MODULES id="juce_core" showAllCode="1" useLocalCopy="1"/>
     <MODULES id="juce_cryptography" showAllCode="1" useLocalCopy="1"/>
     <MODULES id="juce_data_structures" showAllCode="1" useLocalCopy="1"/>

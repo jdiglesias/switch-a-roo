@@ -134,8 +134,9 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 		
 	}
 	if (thumbalina != NULL){
-		Rectangle<int> rect(20, 0, getWidth() - 40, getHeight() / 2);
-		g.setColour(Colour(0xcccccca5));
+
+		Rectangle<int> rect(20, 0, getWidth()-40, getHeight() /2);
+		g.setColour(Colour(0xcc10b5ad));
 		g.fillRectList(rect);
 		double len = thumbalina->getTotalLength();
 		double start;
@@ -144,6 +145,7 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 		start = 0;
 		end = len;
 		zfact = 1;
+        g.setColour(Colour(0xccFF0000));
 		thumbalina->drawChannels(g, rect, start, end, zfact);
 		//int num_samples = thumbalina->getNumSamplesFinished();
 
@@ -172,18 +174,8 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 				g.drawLine(testline);
 			}
 		}
-/*		g.setColour(Colour(0xff222222));
-		//		const Line<float> testline = drawTimeSlice(rect, len, totalNumSamples/2);
-		//	g.drawLine(testline);
-		std::list<int> tmp = thisProcessor->zerosAndPeaksGlobal;
+        
 		String ms;
-		for (std::list<int>::iterator itty = tmp.begin(); itty != tmp.end(); itty++){
-			const Line<float> testline = drawTimeSlice(rect, len, *itty);
-			g.drawLine(testline);
-			ms += std::to_string(*itty) + ", ";
-		}
-		*/
-
 	}
 
     //[UserPaint] Add your own custom painting code here..

@@ -79,7 +79,7 @@ public:
 
 	void RequestUIUpdate(){ UIUpdateFlag = true; };
 	void ClearUIUpdateFlag(){ UIUpdateFlag = false; };
-    const std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold, int minSliceLen);
+    const std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold, const int minSliceLen);
 
 	typedef struct fft{
 		int length;
@@ -100,8 +100,7 @@ public:
         int zero;
         float peak;
     } zeroAndPeak_t;
-    
-
+    const int nearestZero(const int index);
 	AudioSampleBuffer testbuf;
 	int num_blocks =0;
 private:
