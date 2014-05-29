@@ -50,7 +50,7 @@ public:
     
     const String getParameterName (int index);
     const String getParameterText (int index);
-
+	const int nearestZero(const int index);
     const String getInputChannelName (int channelIndex) const;
     const String getOutputChannelName (int channelIndex) const;
     bool isInputChannelStereoPair (int index) const;
@@ -79,14 +79,9 @@ public:
 
 	void RequestUIUpdate(){ UIUpdateFlag = true; };
 	void ClearUIUpdateFlag(){ UIUpdateFlag = false; };
-    const std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold, const int minSliceLen);
+    std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold, int minSliceLen);
 
-	typedef struct fft{
-		int length;
-		float fundamental;
-		float * amplitudes;
-	} fft_t;
-
+	int sampleRate;
 	int time_slice_loop;
 	AudioSampleBuffer * processFile(File compareFile);
 	AudioSampleBuffer * readFile(File compareFile, AudioFormatManager* format);
@@ -95,12 +90,14 @@ public:
 	fftContainer * doFFT(const float * signal, int sigLen);
 	void doFFTtoSlices(std::list<int> timslices, const float * signal, int signalLength);
 	std::vector<fftContainer> fftVector = std::vector<fftContainer>();
-	
+	int minSlices = 2000;
+	int thresh = .5;
     typedef struct zeroAndPeak{
         int zero;
         float peak;
     } zeroAndPeak_t;
-    const int nearestZero(const int index);
+    
+	void doComparison(File source, File compare);
 	AudioSampleBuffer testbuf;
 	int num_blocks =0;
 private:

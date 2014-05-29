@@ -14,12 +14,10 @@
 
 #include <stdlib.h>
 #include <list>
-#include <assert.h>
 #include <cmath>
 #include <complex>
 
 #include <utility> //for slice pairs std::pair
-#include <iostream>
 //==============================================================================
 
 
@@ -139,104 +137,68 @@ void SwitcharooAudioProcessor::setZerosAndPeaks(const float signal[], const int 
         }
     }
 }
-const int SwitcharooAudioProcessor::nearestZero(const int index){
-    int lastZero = 0;
-    try{
-        if(zerosAndPeaks.empty()){
-            throw;
-        }
-    }
-    catch(int e){
-        std::cerr << "peaksAndZeroes is empty." << std::endl;
-        return 0;
-    }
 
-    for(std::vector<zeroAndPeak_t>::iterator i = zerosAndPeaks.begin(); i != zerosAndPeaks.end(); i++){
-        assert(i->zero > lastZero);
-        if(i->zero > index){
-            if(index - lastZero < i->zero - index){
-                return lastZero;
-            }
-            else{
-                return i->zero;
-            }
-        }
-        lastZero = i->zero;
-    }
-    return lastZero;
+const int SwitcharooAudioProcessor::nearestZero(const int index){
+	int lastZero = 0;
+	try{
+		if (zerosAndPeaks.empty()){
+			throw;
+		}
+	}
+	catch (int e){
+		std::cerr << "peaksAndZeroes is empty." << std::endl;
+		return 0;
+	}
+
+	for (std::vector<zeroAndPeak_t>::iterator i = zerosAndPeaks.begin(); i != zerosAndPeaks.end(); i++){
+		jassert(i->zero > lastZero);
+		if (i->zero > index){
+			if (index - lastZero < i->zero - index){
+				return lastZero;
+			}
+			else{
+				return i->zero;
+			}
+		}
+		lastZero = i->zero;
+	}
+	return lastZero;
 }
 /*
  * getSlices returns a list of slices into the sound. the slices are based on jumps in amplitude in the sound, 
  * large enough jumps will result in a slice at the beginning of the jump. large enough is determined by the threshold parameter
  */            
-
-const std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float signal[],const int length, const float threshold,const int minSliceLen){
+std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float signal[],const int length,
+	const float threshold, int minSliceLen){
 	if (zerosAndPeaks.empty()){
 		setZerosAndPeaks(signal, length, 1000);
 	}
 	//std::list<int> zeroesAndPeaks = zerosAndPeaksGlobal;
-    static std::list<int> slices = std::list<int>();
+	static std::list<int> slices = std::list<int>();
+	slices.push_back(0);
     int sign = zerosAndPeaks[0].peak > zerosAndPeaks[1].peak ? 1 : -1;
     int slicePoint = 0;
-    int averagedChunkLen = 6;
-    float periodThreshold = 8000;
-    float variance = 0;
-
-    std::list<float> previousPeriods;
-    float previousPeriodsSum;
-    float averageAmplitude;
+    int averagedChunk = 6;
+    
+    float average;
     std::vector<zeroAndPeak_t>::iterator i = zerosAndPeaks.begin();
     std::vector<zeroAndPeak_t>::iterator  lastZeroAndPeak = zerosAndPeaks.begin();
-    /*for(i = zerosAndPeaks.begin(); i->zero != zerosAndPeaks[averagedChunk - 1].zero && i != zerosAndPeaks.end(); i++){
-        previousPeriodsSum += i->zero - lastZeroAndPeak->zero;
-        lastZeroAndPeak = i;
+    /*for(i = zerosAndPeaks.begin(); i->zero != zerosAndPeaks[averagedChunk].zero && i != zerosAndPeaks.end(); i++){
+        
     }*/
-    for(i = zerosAndPeaks.begin(); i != zerosAndPeaks.end(); i++){
-        previousPeriodsSum += i->zero;
-        variance += std::abs((previousPeriodsSum / averagedChunkLen) - i->zero);
-        previousPeriods.push_back(i->zero);
-        if(previousPeriods.size() == averagedChunkLen){
-            previousPeriodsSum -= previousPeriods.front();
-            variance -= std::abs((previousPeriodsSum / averagedChunkLen) - previousPeriods.front());
-            previousPeriods.pop_front();
-        }
-        else{
-            assert(previousPeriods.size() < averagedChunkLen);
-            
-        }
+	while(i != zerosAndPeaks.end()){
         if(std::abs(i->peak - lastZeroAndPeak->peak) * sign < 0){
             if(sign == 1){
                 slicePoint = lastZeroAndPeak->zero;
                 sign *= -1;
             }
         }
-        
-        if(std::abs(i->peak - lastZeroAndPeak->peak) > threshold && i->zero - slices.back() > minSliceLen){
+      if(std::abs(i->peak - lastZeroAndPeak->peak) > threshold && i->zero - slices.back() > minSliceLen){
             slices.push_back(i->zero);
         }
-        /*else if(std::abs(i->zero - lastZeroAndPeak->zero - (previousPeriodsSum / averagedChunkLen)) > periodThreshold && i->zero - slices.back() > minSliceLen && variance < varianceThreshold){
-            slices.push_back(i->zero);
-            previousPeriods.clear();
-            previousPeriodsSum = 0;
-            do{
-                for(std::vector<zeroAndPeak_t>::iterator endOfChunk = i + averagedChunkLen; i != endOfChunk && i != zerosAndPeaks.end(); i++){
-                    previousPeriods.push_back(i->zero - lastZeroAndPeak->zero);
-                    previousPeriodsSum += i->zero;
-                    lastZeroAndPeak = i;
-                }
-                for(std::list<float>::iterator period = previousPeriods.begin(); period != previousPeriods.end(); period++){
-                    variance += std::abs(*period - (previousPeriodsSum / averagedChunkLen));
-                }
-            }while (variance > varianceThreshold && i != zerosAndPeaks.end());
-        }
-        previousPeriodsSum -= (i-averagedChunkLen)->zero - (i-(averagedChunkLen-1))->zero;
-        previousPeriodsSum += i->zero - lastZeroAndPeak->zero;
-        previousPeriods.push_back(i->zero - lastZeroAndPeak->zero);
-        previousPeriods.pop_front();
-        lastZeroAndPeak = i;*/
-
+       lastZeroAndPeak = i;
+	   i++;
     }
-         
     return slices;
 }
 
@@ -466,7 +428,7 @@ fftContainer * SwitcharooAudioProcessor::doFFT(const float * signal, int signalL
 	
 	float * fftSignal = new float[(nextPow2 / 2) + 1];
 	
-	complex<float> * real_signal = new complex<float>[(nextPow2 / 2) + 1];
+	std::complex<float> * real_signal = new std::complex<float>[(nextPow2 / 2) + 1];
 	kiss_fftr(cfg, fin, fout);
 	float fund = 0.0;
 	float cur_real, cur_img;
@@ -480,7 +442,7 @@ fftContainer * SwitcharooAudioProcessor::doFFT(const float * signal, int signalL
 		if (fund < sqrt(real)){
 			fund = sqrt(real);
 		}
-		real_signal[k] = complex<float>(cur_real, cur_img);
+		real_signal[k] = std::complex<float>(cur_real, cur_img);
 	}
 	 //fftContainer retFFT((nextPow2 / 2) + 1, fund, fftSignal, real_signal);
 	fftContainer * retFFT = new fftContainer((nextPow2 / 2) + 1, fund, fftSignal, real_signal, fin);
@@ -519,9 +481,6 @@ void SwitcharooAudioProcessor::doFFTtoSlices(std::list<int> timeslices, const fl
 				sigStart[index] = signal[i];
 				index++;
 			}
-			//want to get the signal we want to work with to point to the head of the slice so it iterates from there.
-			//sigStart = &signal[*it];
-
 
 			cur_slice = doFFT(sigStart, cur_slice_len);
 			//dereferencing should be ok.
@@ -542,6 +501,10 @@ void SwitcharooAudioProcessor::doFFTtoSlices(std::list<int> timeslices, const fl
 	cur_slice = doFFT(sigStart, cur_slice_len);
 	fftVector.push_back(*cur_slice);
 	//fftVector.push_back(retFFT);
+
+}
+
+void SwitcharooAudioProcessor::doComparison(File source, File compare){
 
 }
 //==============================================================================

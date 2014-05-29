@@ -60,11 +60,33 @@ public:
     void sliderValueChanged (Slider* sliderThatWasMoved);
     void buttonClicked (Button* buttonThatWasClicked);
 
-	void redoTimeSlices();
+	void mouseDown(const MouseEvent &e){
+		mousex = e.getMouseDownScreenX();
+		mousey = e.getMouseDownScreenY();
+		repaint();
+		// do calculation then
+		// do insert into timeslices
+		// used in drawTimeslice
+		//(float)right + (indexInSamples / (totalNumSamples / seconds)) * (areaOfOutput.getWidth() / seconds)
+
+		
+		int index = totalNumSamples *(mousex-20) / widthOfRect;
+		tmp_index = index;
+		if(!(index<0)){
+			int real_index = thisProcessor->nearestZero(index);
+			timeSlices->push_back(real_index);
+			timeSlices->sort();
+		}
+		
+		repaint();
+	}
+
+	void redoTimeSlices(int newThresh, int newMinSlices);
 
 private:
+	int tmp_index;
     //[UserVariables]   -- You can add your own custom variables in this section.
-	vector<fftContainer> * transforms = NULL;
+	std::vector<fftContainer> * transforms = NULL;
 	fftContainer *retFFT = NULL;
 	int fftLength;
 	String global_reals;
@@ -76,18 +98,25 @@ private:
 	const float * arrayOsamps = NULL;
 	File loadFile();
 	void setupThumb(AudioFormatManager* format, File file);
-	std::list<int> timeSlices;
+	std::list<int> * timeSlices;
 	int64 totalNumSamples;
+	double timeLen;
 	double threshold;
 	SwitcharooAudioProcessor * thisProcessor = new SwitcharooAudioProcessor();
 	void registerFFT(File file);
 	void doTestFFT(int N, float amplitude);
-    //[/UserVariables]
+	int mousex, mousey;
+	int widthOfRect;
+	//[/UserVariables]
 
     //==============================================================================
-    ScopedPointer<Slider> slider;
+	ScopedPointer<Slider> sliderThresh;
+	ScopedPointer<Slider> sliderMinlen;
     ScopedPointer<TextButton> textButton;
     ScopedPointer<TextButton> dofft;
+	ScopedPointer<TextButton> doCompare;
+	ScopedPointer<MouseListener> mouse;
+		//MouseInputSourceInternal mouse;
 
 
     //==============================================================================

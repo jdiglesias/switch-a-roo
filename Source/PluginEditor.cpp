@@ -32,22 +32,28 @@
 SwitcharooAudioProcessorEditor::SwitcharooAudioProcessorEditor (SwitcharooAudioProcessor* ownerFilter)
     : AudioProcessorEditor(ownerFilter)
 {
-    addAndMakeVisible (slider = new Slider ("new slider"));
-    slider->setRange (0, 10, 0);
-    slider->setSliderStyle (Slider::LinearHorizontal);
-    slider->setTextBoxStyle (Slider::TextBoxLeft, false, 80, 20);
-    slider->addListener (this);
+    addAndMakeVisible (sliderThresh = new Slider ("thresh"));
+    sliderThresh->setRange (0, 1, 0);
+	sliderThresh->setSliderStyle(Slider::LinearHorizontal);
+	sliderThresh->setTextBoxStyle(Slider::TextBoxLeft, false, 80, 20);
+	sliderThresh->addListener(this);
+
+	addAndMakeVisible(sliderMinlen = new Slider("minLen"));
+	sliderMinlen->setRange(0, 100000, 0);
+	sliderMinlen->setSliderStyle(Slider::LinearHorizontal);
+	sliderMinlen->setTextBoxStyle(Slider::TextBoxLeft, false, 80, 20);
+	sliderMinlen->addListener(this);
 
     addAndMakeVisible (textButton = new TextButton ("new button"));
     textButton->addListener (this);
 
     addAndMakeVisible (dofft = new TextButton ("do fft"));
-    dofft->setButtonText (TRANS("new button"));
+    dofft->setButtonText (TRANS("do fft button"));
     dofft->addListener (this);
 
-
-    //[UserPreSize]
-    //[/UserPreSize]
+	addAndMakeVisible(doCompare = new TextButton("do comparison"));
+	doCompare->setButtonText(TRANS("do Comparison"));
+	doCompare->addListener(this);
 
     setSize (900, 800);
 
@@ -60,25 +66,33 @@ SwitcharooAudioProcessorEditor::SwitcharooAudioProcessorEditor (SwitcharooAudioP
 
 SwitcharooAudioProcessorEditor::~SwitcharooAudioProcessorEditor()
 {
-    //[Destructor_pre]. You can add your own custom destruction code here..
-    //[/Destructor_pre]
+    sliderThresh = nullptr;
+	sliderMinlen = nullptr;
 
-    slider = nullptr;
     textButton = nullptr;
     dofft = nullptr;
 
-
-    //[Destructor]. You can add your own custom destruction code here..
-    //[/Destructor]
 }
 
 //==============================================================================
+
+
 void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 {
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
+	String samplemsg = "";
+	int slicesLen = 0;
 
     g.fillAll (Colours::white);
+	g.drawSingleLineText("Thresh", 0, 750,Justification::left);
+	g.drawSingleLineText("minSlice", 0, 770, Justification::left);
+	g.drawMultiLineText(
+		"mouse X:" + std::to_string(mousex) + " mouse Y:" + std::to_string(mousex) + 
+		"tmp index" + std::to_string(tmp_index),
+		getX(), 50, getWidth()
+		);
+
 	if (isSetTest == 1){
 		g.drawMultiLineText(
 			"imaginaries " + global_img + " reals " + global_reals,
@@ -134,8 +148,7 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 		
 	}
 	if (thumbalina != NULL){
-
-		Rectangle<int> rect(20, 0, getWidth()-40, getHeight() /2);
+		Rectangle<int> rect(20, 20, getWidth() - 40, getHeight() / 2);
 		g.setColour(Colour(0xcc10b5ad));
 		g.fillRectList(rect);
 		double len = thumbalina->getTotalLength();
@@ -145,7 +158,7 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 		start = 0;
 		end = len;
 		zfact = 1;
-        g.setColour(Colour(0xccFF0000));
+		g.setColour(Colour(0xccFF0000));
 		thumbalina->drawChannels(g, rect, start, end, zfact);
 		//int num_samples = thumbalina->getNumSamplesFinished();
 
@@ -153,33 +166,23 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 
 		/*trying to get audio from processBlock*/
 
-
-		/*		String message = "timeSlices? :(" + std::to_string(timeSlices.size())  + ")";
-		std::list<int>::iterator it1;
-
-		for (std::list<int>::iterator it1 = timeSlices.begin(); it1 != timeSlices.end(); it1++){
-		message += std::to_string(*it1) + " ,";
-		}
-		//" arrayOsamps (630)--" + std::to_string(arrayOsamps[630]) + " arrayOsamps (631)--" + std::to_string(arrayOsamps[631]);
-		g.setFont(15);
-		g.drawMultiLineText(message,
-		getX(), (getHeight() * 2) /3,
-		getWidth());
-		*/
+		widthOfRect = rect.getWidth();
+		timeLen = len;
 		std::list<int>::iterator it;
 		if (len != 0){
-
-			for (std::list<int>::iterator it = timeSlices.begin(); it != timeSlices.end(); it++){
+			for (std::list<int>::iterator it = timeSlices->begin(); it != timeSlices->end(); it++){
+				samplemsg = samplemsg + std::to_string(*it) + ",";
+				slicesLen = timeSlices->size();
 				const Line<float> testline = drawTimeSlice(rect, len, *it);
 				g.drawLine(testline);
 			}
-		}
-        
-		String ms;
-	}
 
-    //[UserPaint] Add your own custom painting code here..
-    //[/UserPaint]
+		}
+
+	}
+	g.drawMultiLineText("SliceSampleIndexes:" + samplemsg + " Number Of Slices:" + std::to_string(slicesLen), getX(), 30, getWidth());
+
+
 }
 
 /*draw time slice*/
@@ -196,38 +199,51 @@ const Line<float> SwitcharooAudioProcessorEditor::drawTimeSlice(Rectangle<int> &
 
 	bottomy = (float)areaOfOutput.getBottom();
 
-	Line<float> f(topx, 0.0, topx, bottomy);
+	Line<float> f(topx, 20.0, topx, bottomy);
 
 	return f;
 }
 
 void SwitcharooAudioProcessorEditor::resized()
 {
-    slider->setBounds (241, 320, 150, 24);
-    textButton->setBounds (233, 280, 150, 24);
-    dofft->setBounds (232, 392, 150, 24);
+    sliderThresh->setBounds (60, 730,800, 24);
+	sliderMinlen->setBounds(60, 750, 800, 24);
+
+    textButton->setBounds (750, 775, 150, 24);
+    dofft->setBounds (400, 775, 150, 24);
+	doCompare->setBounds(0, 775, 150, 24);
+
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
 
-void SwitcharooAudioProcessorEditor::redoTimeSlices(){
-	//timeSlices = thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, threshold, 2000);
+void SwitcharooAudioProcessorEditor::redoTimeSlices(int newThresh, int newMinSlices){
+	timeSlices->clear();
+	timeSlices = &thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
 	repaint();
 } 
+
 
 void SwitcharooAudioProcessorEditor::sliderValueChanged (Slider* sliderThatWasMoved)
 {
     //[UsersliderValueChanged_Pre]
     //[/UsersliderValueChanged_Pre]
+	if (!timeSlices->empty()){
+		if (sliderThatWasMoved == sliderThresh)
+		{
+			//[UserSliderCode_slider] -- add your slider handling code here..
+			int newthresh = sliderThatWasMoved->getValue();
+			thisProcessor->thresh = newthresh;
+			redoTimeSlices(newthresh, thisProcessor->minSlices);
+			//[/UserSliderCode_slider]
+		}
+		else if (sliderThatWasMoved = sliderMinlen){
+			int newMinSlices = sliderThatWasMoved->getValue();
+			thisProcessor->minSlices = newMinSlices;
+			redoTimeSlices(thisProcessor->thresh, newMinSlices);
 
-    if (sliderThatWasMoved == slider)
-    {
-        //[UserSliderCode_slider] -- add your slider handling code here..
-		threshold = sliderThatWasMoved ->getValue();
-		redoTimeSlices();
-        //[/UserSliderCode_slider]
-    }
-
+		}
+	}
     //[UsersliderValueChanged_Post]
     //[/UsersliderValueChanged_Post]
 }
@@ -258,6 +274,15 @@ void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked
 		doTestFFT(8, 1);
 		repaint();
 	*/
+	}
+	else if (buttonThatWasClicked == doCompare){
+		File fileSource = loadFile();
+		if (fileSource != File()){
+			File fileCompare = loadFile();
+			if (fileCompare != File()){
+				thisProcessor ->doComparison(fileSource, fileCompare);
+			}
+		}
 	}
 	
     //[UserbuttonClicked_Post]
@@ -341,10 +366,10 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	arrayOsamps = buf->getReadPointer(0);
 	int64 tmpTotal = reader->lengthInSamples;
 //to display audio
-	timeSlices=	thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .1, 1999);
+	timeSlices=	&thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .005, 51000);
 	totalNumSamples = tmpTotal;
 //to slices to fft
-	thisProcessor->doFFTtoSlices(timeSlices, array_of_samples, reader->lengthInSamples);
+//	thisProcessor->doFFTtoSlices(timeSlices, array_of_samples, reader->lengthInSamples);
 	repaint();
 }
 
