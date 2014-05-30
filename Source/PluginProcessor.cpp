@@ -450,9 +450,15 @@ fftContainer * SwitcharooAudioProcessor::doFFT(const float * signal, int signalL
 	return retFFT;
 }
 
-void SwitcharooAudioProcessor::doFFTtoSlices(std::list<int> timeslices, const float signal[], int signalLength){
+void SwitcharooAudioProcessor::doFFTtoSlices(std::list<int> timeslices, const float signal[], int signalLength, String which){
 	//for time slices
-	fftVector = std::vector<fftContainer>();
+	if (which == "source"){
+		fftSource = std::vector<fftContainer>();
+	}
+	if (which == "compare"){
+		fftCompare = std::vector<fftContainer>();
+	}
+
 	fftContainer * cur_slice;
 	const float * sig;
 	int time_slice_loop = 0;
@@ -484,7 +490,12 @@ void SwitcharooAudioProcessor::doFFTtoSlices(std::list<int> timeslices, const fl
 
 			cur_slice = doFFT(sigStart, cur_slice_len);
 			//dereferencing should be ok.
-			fftVector.push_back(*cur_slice);
+			if (which == "source"){
+				fftSource.push_back(*cur_slice);
+			}
+			if (which == "compare"){
+				fftCompare.push_back(*cur_slice);
+			}
 			time_slice_loop++;
 		}
 		last_slice = *it;
@@ -499,12 +510,20 @@ void SwitcharooAudioProcessor::doFFTtoSlices(std::list<int> timeslices, const fl
 	}
 	cur_slice_len = signalLength - last_slice;
 	cur_slice = doFFT(sigStart, cur_slice_len);
-	fftVector.push_back(*cur_slice);
+	if (which == "source"){
+		fftSource.push_back(*cur_slice);
+	}
+	if (which == "compare"){
+		fftCompare.push_back(*cur_slice);
+	}
+
 	//fftVector.push_back(retFFT);
 
 }
 
-void SwitcharooAudioProcessor::doComparison(File source, File compare){
+void SwitcharooAudioProcessor::doComparison(songProperties * source, songProperties * compare){
+	doFFTtoSlices(*source->timeSlices, source->samples, source->totalNumSamples, "source");
+	doFFTtoSlices(*compare->timeSlices, compare->samples, compare->totalNumSamples, "compare");
 
 }
 //==============================================================================

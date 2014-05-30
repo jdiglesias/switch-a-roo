@@ -44,16 +44,29 @@ SwitcharooAudioProcessorEditor::SwitcharooAudioProcessorEditor (SwitcharooAudioP
 	sliderMinlen->setTextBoxStyle(Slider::TextBoxLeft, false, 80, 20);
 	sliderMinlen->addListener(this);
 
-    addAndMakeVisible (textButton = new TextButton ("new button"));
-    textButton->addListener (this);
+    addAndMakeVisible (selectSong1 = new TextButton ("Select Song 1"));
+	selectSong1->setButtonText(TRANS("Select first Song"));
+	selectSong1->addListener(this);
 
-    addAndMakeVisible (dofft = new TextButton ("do fft"));
-    dofft->setButtonText (TRANS("do fft button"));
-    dofft->addListener (this);
+    addAndMakeVisible (setSong1TimeSlices = new TextButton ("do fft"));
+	setSong1TimeSlices->setButtonText(TRANS("set Song 1 slices"));
+	setSong1TimeSlices->addListener(this);
+
+	addAndMakeVisible(selectSong2 = new TextButton("Select Song 1"));
+	selectSong2->setButtonText(TRANS("Select second Song"));
+	selectSong2->addListener(this);
+
+	addAndMakeVisible(setSong2TimeSlices = new TextButton("do fft"));
+	setSong2TimeSlices->setButtonText(TRANS("set Song 2 slices"));
+	setSong2TimeSlices->addListener(this);
 
 	addAndMakeVisible(doCompare = new TextButton("do comparison"));
 	doCompare->setButtonText(TRANS("do Comparison"));
 	doCompare->addListener(this);
+	addAndMakeVisible(fftOnSong = new TextButton("do comparison"));
+	fftOnSong->setButtonText(TRANS("do FFT song"));
+	fftOnSong->addListener(this);
+
 
     setSize (900, 800);
 
@@ -69,8 +82,11 @@ SwitcharooAudioProcessorEditor::~SwitcharooAudioProcessorEditor()
     sliderThresh = nullptr;
 	sliderMinlen = nullptr;
 
-    textButton = nullptr;
-    dofft = nullptr;
+	selectSong1 = nullptr;
+	selectSong2 = nullptr;
+
+	setSong1TimeSlices = nullptr;
+	setSong2TimeSlices = nullptr;
 
 }
 
@@ -89,9 +105,26 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 	g.drawSingleLineText("minSlice", 0, 770, Justification::left);
 	g.drawMultiLineText(
 		"mouse X:" + std::to_string(mousex) + " mouse Y:" + std::to_string(mousex) + 
-		"tmp index" + std::to_string(tmp_index),
-		getX(), 50, getWidth()
-		);
+		"tmp index" + std::to_string(tmp_index) + " File Numba: " + std::to_string(fileNumba),
+		getX(), getHeight() /2 +30, getWidth()
+	);
+	if (thisProcessor->song1 != NULL && thisProcessor->song2 != NULL){
+		int len1 = thisProcessor->song1->timeSlices->size();
+		int len2 = thisProcessor->song2->timeSlices->size();
+		String songSamps = "";
+		for (int i = 0; i < 10; i++){
+			songSamps = songSamps + std::to_string(thisProcessor->song1->samples[i]) + ",";
+			songSamps = songSamps + std::to_string(thisProcessor->song2->samples[i]) + ",";
+		}
+		String totalNums = "";
+		totalNums = " Song1_totalSamps:" + std::to_string(thisProcessor->song1->totalNumSamples)
+			+ " Song2_totalSamps:" + std::to_string(thisProcessor->song2->totalNumSamples);
+		g.drawMultiLineText(
+			"YOU CAN DO A COMPARISON!!! slices in song 1:" + std::to_string(len1) 
+			+ " amount in song 2:" + std::to_string(len2)
+			+ " songSamps" + songSamps + totalNums,
+			getX(), getHeight() / 2 + 100, getWidth());
+	}
 
 	if (isSetTest == 1){
 		g.drawMultiLineText(
@@ -99,7 +132,7 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 			getX(), 20,
 			getWidth());
 	}
-	if (!thisProcessor->fftVector.empty()){
+/*	if (!thisProcessor->fftVector.empty()){
 		String msg = "amount of ffts ="+ std::to_string(thisProcessor->fftVector.size()) +"\n";
 		for (int i = 0; i <= thisProcessor->fftVector.size()-1; i++){
 			//get length
@@ -117,7 +150,7 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 			getX(), (getHeight() *2)/3,
 			getWidth());
 
-	}
+	}*/
 	if (retFFT != NULL){
 		String msg;
 		int skipped = 0;
@@ -147,7 +180,7 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 			getWidth());
 		
 	}
-	if (thumbalina != NULL){
+	if (thumbalina != NULL && (fileNumba == 1 || fileNumba ==2)){
 		Rectangle<int> rect(20, 20, getWidth() - 40, getHeight() / 2);
 		g.setColour(Colour(0xcc10b5ad));
 		g.fillRectList(rect);
@@ -170,17 +203,31 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 		timeLen = len;
 		std::list<int>::iterator it;
 		if (len != 0){
-			for (std::list<int>::iterator it = timeSlices->begin(); it != timeSlices->end(); it++){
-				samplemsg = samplemsg + std::to_string(*it) + ",";
-				slicesLen = timeSlices->size();
-				const Line<float> testline = drawTimeSlice(rect, len, *it);
-				g.drawLine(testline);
+			if (fileNumba == 1){
+				for (it = timeSlices1->begin(); it != timeSlices1->end(); it++){
+					samplemsg = samplemsg + std::to_string(*it) + ",";
+					slicesLen = timeSlices1->size();
+					const Line<float> testline = drawTimeSlice(rect, len, *it);
+					g.drawLine(testline);
+				}
+				samplemsg = samplemsg + "--------doing slices 1-------";
+			}
+			if (fileNumba == 2) {
+				for (it = timeSlices2->begin(); it != timeSlices2->end(); it++){
+					samplemsg = samplemsg + std::to_string(*it) + ",";
+					slicesLen = timeSlices2->size();
+					const Line<float> testline = drawTimeSlice(rect, len, *it);
+					g.drawLine(testline);
+				}
+				samplemsg = samplemsg + "----------doing slices 2 -------";
+
 			}
 
 		}
 
 	}
-	g.drawMultiLineText("SliceSampleIndexes:" + samplemsg + " Number Of Slices:" + std::to_string(slicesLen), getX(), 30, getWidth());
+	g.drawMultiLineText("SliceSampleIndexes:" + samplemsg + " Number Of Slices:" + std::to_string(slicesLen),
+		getX(), getHeight()/ 2 + 45, getWidth());
 
 
 }
@@ -209,17 +256,28 @@ void SwitcharooAudioProcessorEditor::resized()
     sliderThresh->setBounds (60, 730,800, 24);
 	sliderMinlen->setBounds(60, 750, 800, 24);
 
-    textButton->setBounds (750, 775, 150, 24);
-    dofft->setBounds (400, 775, 150, 24);
+	selectSong1->setBounds(750, 775, 125, 24);
+	setSong1TimeSlices->setBounds(625, 775, 125, 24);
+
+	selectSong2->setBounds(500, 775, 125, 24);
+	setSong2TimeSlices->setBounds(375, 775, 125, 24);
+	fftOnSong->setBounds(225, 775, 125, 24);
+
 	doCompare->setBounds(0, 775, 150, 24);
 
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
 
-void SwitcharooAudioProcessorEditor::redoTimeSlices(int newThresh, int newMinSlices){
-	timeSlices->clear();
-	timeSlices = &thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
+void SwitcharooAudioProcessorEditor::redoTimeSlices(float newThresh, int newMinSlices){
+	if (fileNumba == 1){
+		timeSlices1->clear();
+		timeSlices1 = &thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
+	}
+	if (fileNumba == 2) {
+		timeSlices2->clear();
+		timeSlices2 = &thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
+	}
 	repaint();
 } 
 
@@ -228,11 +286,18 @@ void SwitcharooAudioProcessorEditor::sliderValueChanged (Slider* sliderThatWasMo
 {
     //[UsersliderValueChanged_Pre]
     //[/UsersliderValueChanged_Pre]
-	if (!timeSlices->empty()){
+	bool check;
+	if (fileNumba == 1){
+		check = !timeSlices1->empty();
+	}
+	if (fileNumba == 2){
+		check = !timeSlices2->empty();
+	}
+	if (check){
 		if (sliderThatWasMoved == sliderThresh)
 		{
 			//[UserSliderCode_slider] -- add your slider handling code here..
-			int newthresh = sliderThatWasMoved->getValue();
+			float newthresh = sliderThatWasMoved->getValue();
 			thisProcessor->thresh = newthresh;
 			redoTimeSlices(newthresh, thisProcessor->minSlices);
 			//[/UserSliderCode_slider]
@@ -253,17 +318,46 @@ void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked
     //[UserbuttonClicked_Pre]
     //[/UserbuttonClicked_Pre]
 
-    if (buttonThatWasClicked == textButton)
+    if (buttonThatWasClicked == selectSong1)
     {
 		File compareFile = loadFile();
 		//setting up the audioThumbnail.
 		if (compareFile != File()){
 			AudioFormatManager* format = new AudioFormatManager();
 			format->registerBasicFormats();
-			setupThumb(format, compareFile);
+			setupThumb(format, compareFile, 1);
 		}
 	}
-    else if (buttonThatWasClicked == dofft)
+	else if (buttonThatWasClicked == setSong1TimeSlices)
+	{
+		//set the processors firt song;
+		thisProcessor->song1->setTimeSlices(*timeSlices1);
+		fileNumba = 12;
+		timeSlices1->clear();
+		repaint();
+		setSong1TimeSlices->setButtonText(TRANS("SONG 1 SET!"));
+
+
+	}
+	else if (buttonThatWasClicked == selectSong2)
+	{
+		File compareFile = loadFile();
+		//setting up the audioThumbnail.
+		if (compareFile != File()){
+			AudioFormatManager* format = new AudioFormatManager();
+			format->registerBasicFormats();
+			setupThumb(format, compareFile, 2);
+		}
+	}
+	else if (buttonThatWasClicked == setSong2TimeSlices)
+	{
+		//set the processors firt song;
+		thisProcessor->song2->setTimeSlices(*timeSlices2);
+		fileNumba = 12;
+		repaint();
+		setSong2TimeSlices->setButtonText(TRANS("SONG 2 SET!"));
+	}
+    else if (buttonThatWasClicked == fftOnSong)
     {
 		File compFile = loadFile();
 		if (compFile != File()){
@@ -276,13 +370,10 @@ void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked
 	*/
 	}
 	else if (buttonThatWasClicked == doCompare){
-		File fileSource = loadFile();
-		if (fileSource != File()){
-			File fileCompare = loadFile();
-			if (fileCompare != File()){
-				thisProcessor ->doComparison(fileSource, fileCompare);
-			}
-		}
+		thisProcessor->doComparison(thisProcessor->song1, thisProcessor->song1);
+		//then write
+		doCompare->setButtonText(TRANS("ALMOST THERE"));
+
 	}
 	
     //[UserbuttonClicked_Post]
@@ -349,7 +440,8 @@ void SwitcharooAudioProcessorEditor::doTestFFT(int N, float amplitude){
 	isSetTest = 1;
 }
 
-void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File file){
+void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File file, int fileNum){
+	fileNumba = fileNum;
 	AudioThumbnailCache cache(5);
 	AudioFormatReader * reader = format->createReaderFor(file);
 	int numsamplesperThumb = reader->sampleRate;
@@ -366,10 +458,30 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	arrayOsamps = buf->getReadPointer(0);
 	int64 tmpTotal = reader->lengthInSamples;
 //to display audio
-	timeSlices=	&thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .005, 51000);
+	if (fileNum == 1){
+		timeSlices1 = &thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .005, 51000);
+	}
+	if (fileNum == 2){
+		timeSlices2 = &thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .005, 51000);
+	}
 	totalNumSamples = tmpTotal;
-//to slices to fft
-//	thisProcessor->doFFTtoSlices(timeSlices, array_of_samples, reader->lengthInSamples);
+/*	songProperties(int sampRate,
+		std::list<int> * tSlices,
+		int64 totNumSamples,
+		double tLen,
+		const float * samps,
+		int newthresh,
+		int newminSlic)
+*/	
+	songProperties tmp_song(reader->sampleRate, tmpTotal,
+		thumbalina->getTotalLength(), array_of_samples, .5, 2000);
+	
+	if (fileNumba == 1){
+		thisProcessor->song1 = new songProperties(tmp_song);
+	}
+	if(fileNumba == 2){
+		thisProcessor->song2 = new songProperties(tmp_song);
+	}
 	repaint();
 }
 

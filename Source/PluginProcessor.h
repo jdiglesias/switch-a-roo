@@ -16,6 +16,7 @@
 #include "fftContainer.h"
 #include "kiss_fft130/kiss_fft.h"
 #include "kiss_fft130/tools/kiss_fftr.h"
+#include "song.h"
 
 
 //==============================================================================
@@ -88,18 +89,22 @@ public:
 	void processAudioBuffer(AudioSampleBuffer& buffer);
 	std::list<int> zerosAndPeaksGlobal = std::list<int>();
 	fftContainer * doFFT(const float * signal, int sigLen);
-	void doFFTtoSlices(std::list<int> timslices, const float * signal, int signalLength);
-	std::vector<fftContainer> fftVector = std::vector<fftContainer>();
+	void doFFTtoSlices(std::list<int> timslices, const float * signal, int signalLength,String which);
+	std::vector<fftContainer> fftSource = std::vector<fftContainer>();
+
+	std::vector<fftContainer> fftCompare = std::vector<fftContainer>();
 	int minSlices = 2000;
-	int thresh = .5;
+	float thresh = .5;
     typedef struct zeroAndPeak{
         int zero;
         float peak;
     } zeroAndPeak_t;
     
-	void doComparison(File source, File compare);
+	void doComparison(songProperties * source, songProperties * compare);
 	AudioSampleBuffer testbuf;
 	int num_blocks =0;
+	songProperties * song1 = NULL;
+	songProperties * song2 = NULL;
 private:
     std::vector<int> getSegments(float* channelData, int length);
     std::vector<zeroAndPeak_t> zerosAndPeaks = std::vector<zeroAndPeak_t>();

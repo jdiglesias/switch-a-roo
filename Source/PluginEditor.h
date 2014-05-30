@@ -54,6 +54,7 @@ public:
 		return static_cast <SwitcharooAudioProcessor*>(getAudioProcessor());
 	}
     //[/UserMethods]
+	int fileNumba;
 
     void paint (Graphics& g);
     void resized();
@@ -67,21 +68,24 @@ public:
 		// do calculation then
 		// do insert into timeslices
 		// used in drawTimeslice
-		//(float)right + (indexInSamples / (totalNumSamples / seconds)) * (areaOfOutput.getWidth() / seconds)
-
-		
 		int index = totalNumSamples *(mousex-20) / widthOfRect;
 		tmp_index = index;
-		if(!(index<0)){
+		if(!(index<0) && (fileNumba !=0)){
 			int real_index = thisProcessor->nearestZero(index);
-			timeSlices->push_back(real_index);
-			timeSlices->sort();
+			if (fileNumba == 1){
+				timeSlices1->push_back(real_index);
+				timeSlices1->sort();
+			}
+			else {
+				timeSlices2->push_back(real_index);
+				timeSlices2->sort();
+			}
 		}
 		
 		repaint();
 	}
 
-	void redoTimeSlices(int newThresh, int newMinSlices);
+	void redoTimeSlices(float newThresh, int newMinSlices);
 
 private:
 	int tmp_index;
@@ -97,8 +101,10 @@ private:
 	AudioThumbnail * thumbalina = NULL;
 	const float * arrayOsamps = NULL;
 	File loadFile();
-	void setupThumb(AudioFormatManager* format, File file);
-	std::list<int> * timeSlices;
+	void setupThumb(AudioFormatManager* format, File file, int fileNum);
+	std::list<int> * timeSlices1;
+	std::list<int> * timeSlices2;
+
 	int64 totalNumSamples;
 	double timeLen;
 	double threshold;
@@ -109,11 +115,17 @@ private:
 	int widthOfRect;
 	//[/UserVariables]
 
+
+
     //==============================================================================
 	ScopedPointer<Slider> sliderThresh;
 	ScopedPointer<Slider> sliderMinlen;
-    ScopedPointer<TextButton> textButton;
-    ScopedPointer<TextButton> dofft;
+    ScopedPointer<TextButton> selectSong1;
+    ScopedPointer<TextButton> setSong1TimeSlices;
+	ScopedPointer<TextButton> selectSong2;
+	ScopedPointer<TextButton> setSong2TimeSlices;
+	ScopedPointer<TextButton> fftOnSong;
+
 	ScopedPointer<TextButton> doCompare;
 	ScopedPointer<MouseListener> mouse;
 		//MouseInputSourceInternal mouse;
