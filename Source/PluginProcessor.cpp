@@ -438,14 +438,14 @@ fftContainer * SwitcharooAudioProcessor::doFFT(const float * signal, int signalL
 		cur_img = fout[k].i / (nextPow2 / 2);
 
 		real = (cur_real * cur_real) + (cur_img * cur_img);
-		fftSignal[k] = sqrt(real);
+		fftSignal[k] = sqrt(real)/(nextPow2/2);
 		if (fund < sqrt(real)){
 			fund = sqrt(real);
 		}
 		real_signal[k] = std::complex<float>(cur_real, cur_img);
 	}
 	 //fftContainer retFFT((nextPow2 / 2) + 1, fund, fftSignal, real_signal);
-	fftContainer * retFFT = new fftContainer((nextPow2 / 2) + 1, fund, fftSignal, real_signal, fin);
+	fftContainer * retFFT = new fftContainer((nextPow2 / 2) + 1, fund, fftSignal, real_signal, fin, signalLength);
 	free(cfg);
 	return retFFT;
 }
@@ -521,10 +521,59 @@ void SwitcharooAudioProcessor::doFFTtoSlices(std::list<int> timeslices, const fl
 
 }
 
+
+/*
+comparison stuff
+      -------------------------------------------------------
+source|  1             |        2        |       3          |
+	  -------------------------------------------------------
+        |     \    __\____/____|_______\__/ /     |
+        X      X   X  O       skip      X skip    O
+        |       \  |   \       |         \/       |
+       -------------------------------------------------------
+compare|  1     |  2     |       3        |        4         |
+       -------------------------------------------------------
+this is what basic comparison looks like S1 compares with  C1 and C2 before succeeding on C3. 
+it should then immediately incremement what you want to compare so S2 will look at C1 ,C2 ,skip C3, and C4. we thus leave S2 alone
+S3 then looks at C1, C2, skip c3, and then matches on c4.
+the values are pushed back on to a list of inorder length and floats
+the values are then written with a audioFormatWriter.
+*/
+
 void SwitcharooAudioProcessor::doComparison(songProperties * source, songProperties * compare){
 	doFFTtoSlices(*source->timeSlices, source->samples, source->totalNumSamples, "source");
 	doFFTtoSlices(*compare->timeSlices, compare->samples, compare->totalNumSamples, "compare");
-
+	int totalLen = 0;
+	std::vector< std::pair<float *, int>> matched;
+	for (int i = 0; i < fftSource.size() - 1; i++){
+		float * sampStart;
+		int thisSliceLen;
+		for (int j = 0; j < fftCompare.size() - 1; j++){
+			if ((fftSource[i].length >fftCompare[j].length - 500)
+				&& (fftSource[i].length < fftCompare[j].length + 500)){
+				//call match for now.
+				sampStart = fftCompare[j].rawAudio;
+				thisSliceLen = fftCompare[j].length;
+				//want to look at the next slice to compare.
+				if (i < fftSource.size() - 1){
+					i++;
+				}
+				else{
+					//escape to upper for loop or it should be done i guess.
+					break;
+				}
+				j = 0;
+				matched.push_back(std::pair<float *, int>(sampStart, thisSliceLen));
+				totalLen += fftCompare[j].rawAudioLength;
+			}
+		}
+		sampStart = fftSource[i].rawAudio;
+		thisSliceLen = fftSource[i].length;
+		matched.push_back(std::pair<float *, int>(sampStart, thisSliceLen));
+		totalLen += fftSource[i].rawAudioLength;
+	}
+	outputSong = matched;
+	outSongLength = totalLen;
 }
 //==============================================================================
 // This creates new instances of the plugin..

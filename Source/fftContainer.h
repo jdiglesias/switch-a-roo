@@ -5,12 +5,13 @@
 
 class fftContainer{
 public:
-	fftContainer(int len, float fund, float * amps, std::complex<float> * rawDa, float * rawAud){
+	fftContainer(int len, float fund, float * amps, std::complex<float> * rawDa, float * rawAud, int rawAudLen){
 		length = len;
 		fundamental = fund;
 		amplitudes = amps;
 		rawFFT = rawDa;
 		rawAudio = rawAud;
+		rawAudioLength = rawAudLen;
 	}
 
 	int length;
@@ -18,6 +19,7 @@ public:
 	float * amplitudes;
 	std::complex<float> * rawFFT;
 	float * rawAudio;
+	int rawAudioLength;
 	/*
 	fftContainer * doFFT(const float * signal, int signalLength){
 		int nextPow2 = 1;

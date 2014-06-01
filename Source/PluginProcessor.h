@@ -12,6 +12,7 @@
 #define PLUGINPROCESSOR_H_INCLUDED
 #include <list>
 #include <vector>
+#include <utility> //for slices
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "fftContainer.h"
 #include "kiss_fft130/kiss_fft.h"
@@ -103,6 +104,8 @@ public:
 	void doComparison(songProperties * source, songProperties * compare);
 	AudioSampleBuffer testbuf;
 	int num_blocks =0;
+	std::vector< std::pair<float *, int>> outputSong;
+	int outSongLength;
 	songProperties * song1 = NULL;
 	songProperties * song2 = NULL;
 private:

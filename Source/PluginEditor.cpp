@@ -163,8 +163,8 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 			length = 1000;
 		} 
 		for (int j = 0; j < 20; j++){
-			if (!((int)retSignal[j] <= 0)){
-				msg = msg + std::to_string(retSignal[j]/fund) + " ,";
+			if (!(retSignal[j] < 0)){
+				msg = msg + std::to_string(retSignal[j]) + " ,";
 			}
 			else {
 				msg = msg + " _ ";
@@ -370,9 +370,11 @@ void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked
 	*/
 	}
 	else if (buttonThatWasClicked == doCompare){
-		thisProcessor->doComparison(thisProcessor->song1, thisProcessor->song1);
+		//thisProcessor->doComparison(thisProcessor->song1, thisProcessor->song1);
 		//then write
 		doCompare->setButtonText(TRANS("ALMOST THERE"));
+		writeComparison();
+		doCompare->setButtonText(TRANS("Wrote Something"));
 
 	}
 	
@@ -484,6 +486,52 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	}
 	repaint();
 }
+
+void SwitcharooAudioProcessorEditor::writeComparison(){
+	File outSong = File(File::getSpecialLocation(File::userHomeDirectory).getChildFile("outSong"));
+	TemporaryFile out(outSong);
+	if (outSong.existsAsFile()){
+		outSong.deleteFile();
+	}
+	WavAudioFormat wavFormat;
+	int len = thisProcessor->outSongLength;
+
+	ScopedPointer <FileOutputStream> outStream(out.getFile().createOutputStream());
+	//FileOutputStream * outSongStream = outSong.createOutputStream(len);
+	FileOutputStream outSongStream(outSong);
+	if (!thisProcessor->outputSong.empty()){
+		//we are ok
+	/*	if (outSong.existsAsFile()){
+			outSong.deleteFile();
+		}*/
+	}
+	Array<int> posBits = wavFormat.getPossibleBitDepths();
+	StringPairArray metaData = wavFormat.createBWAVMetadata("wombo combo", "switcharoo",
+		"switchdedooo", Time::getCurrentTime(), 44100, "2013-2014");
+	ScopedPointer <AudioFormatWriter> writer = wavFormat.createWriterFor(outStream, 44100, 1, posBits[1], metaData, 0);
+	float * samps = new float[40000];
+	float * samps2 = new float[40000];
+
+	const float * testTemp = new const float[1 ];
+	for (int i = 0; i < 40000; i++){
+		samps[i] = 1.5666;
+		samps2[i] = -1.5666;
+	}
+	float ** totalSamps = new float *[2];
+	totalSamps[0] = samps;
+	totalSamps[1] = samps2;
+
+	float * const * tmp = totalSamps;
+	AudioSampleBuffer buf(tmp, 2, 40000);
+	//const float*const * allsamples;
+		//writer->writeFromFloatArrays(tmp, 1, len);
+	writer->writeFromAudioSampleBuffer(buf, 1, 35000);
+	outStream.release();
+		//delete (&outSongStream);
+		out.overwriteTargetFileWithTemporary();
+		writer = NULL;
+
+	}
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
 void SwitcharooAudioProcessorEditor::timerCallback()

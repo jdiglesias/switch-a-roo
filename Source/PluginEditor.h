@@ -54,7 +54,7 @@ public:
 		return static_cast <SwitcharooAudioProcessor*>(getAudioProcessor());
 	}
     //[/UserMethods]
-	int fileNumba;
+	int fileNumba = 0;
 
     void paint (Graphics& g);
     void resized();
@@ -102,6 +102,7 @@ private:
 	const float * arrayOsamps = NULL;
 	File loadFile();
 	void setupThumb(AudioFormatManager* format, File file, int fileNum);
+	void writeComparison();
 	std::list<int> * timeSlices1;
 	std::list<int> * timeSlices2;
 
