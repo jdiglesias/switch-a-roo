@@ -55,6 +55,7 @@ public:
 	}
     //[/UserMethods]
 	int fileNumba = 0;
+	int widthOfRect;
 
     void paint (Graphics& g);
     void resized();
@@ -68,16 +69,17 @@ public:
 		// do calculation then
 		// do insert into timeslices
 		// used in drawTimeslice
-		int index = totalNumSamples *(mousex-20) / widthOfRect;
+		int index = (totalNumSamples *(mousex-20 -190) / widthOfRect);
 		tmp_index = index;
 		if(!(index<0) && (fileNumba !=0)){
-			int real_index = thisProcessor->nearestZero(index);
 			if (fileNumba == 1){
-				timeSlices1->push_back(real_index);
+				int real_index = thisProcessor->song1->nearestZero(index);
+				timeSlices1->push_back(index);
 				timeSlices1->sort();
 			}
-			else {
-				timeSlices2->push_back(real_index);
+			if (fileNumba == 2){
+				int real_index = thisProcessor->song2->nearestZero(index);
+				timeSlices2->push_back(index);
 				timeSlices2->sort();
 			}
 		}
@@ -100,21 +102,31 @@ private:
 	const Line<float> drawTimeSlice(Rectangle<int> & areaOfOutput, double seconds, int indexInSamples);
 	AudioThumbnail * thumbalina = NULL;
 	const float * arrayOsamps = NULL;
+
 	File loadFile();
 	void setupThumb(AudioFormatManager* format, File file, int fileNum);
 	void writeComparison();
 	std::list<int> * timeSlices1;
 	std::list<int> * timeSlices2;
+	AudioSampleBuffer * outSongBuf = NULL;
+	float * outSongSamps = NULL;
 
 	int64 totalNumSamples;
 	double timeLen;
 	double threshold;
+	AudioSampleBuffer * curSongBuf = NULL;
 	SwitcharooAudioProcessor * thisProcessor = new SwitcharooAudioProcessor();
 	void registerFFT(File file);
 	void doTestFFT(int N, float amplitude);
 	int mousex, mousey;
-	int widthOfRect;
 	//[/UserVariables]
+	// graphics debugs
+	void fftSourceCompareDisplay(Graphics &g);
+	void ThumbnailDisplay(Graphics &g);
+	void doFFTdisplay(Graphics &g);
+	void displayComparisonMsg(Graphics &g);
+	void outputSongDisplay(Graphics &g);
+
 
 
 

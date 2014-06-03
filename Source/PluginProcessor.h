@@ -81,7 +81,7 @@ public:
 
 	void RequestUIUpdate(){ UIUpdateFlag = true; };
 	void ClearUIUpdateFlag(){ UIUpdateFlag = false; };
-    std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold, int minSliceLen);
+    std::list<int>& getSlicesByAmplitude(const float signal[], const int length, const float threshold, int minSliceLen, int songNum);
 
 	int sampleRate;
 	int time_slice_loop;
@@ -96,11 +96,7 @@ public:
 	std::vector<fftContainer> fftCompare = std::vector<fftContainer>();
 	int minSlices = 2000;
 	float thresh = .5;
-    typedef struct zeroAndPeak{
-        int zero;
-        float peak;
-    } zeroAndPeak_t;
-    
+
 	void doComparison(songProperties * source, songProperties * compare);
 	AudioSampleBuffer testbuf;
 	int num_blocks =0;
@@ -110,12 +106,12 @@ public:
 	songProperties * song2 = NULL;
 private:
     std::vector<int> getSegments(float* channelData, int length);
-    std::vector<zeroAndPeak_t> zerosAndPeaks = std::vector<zeroAndPeak_t>();
+
     void compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset);
-    void setZerosAndPeaks(const float signal[], const int length, int averagedChunk);
+
 	float UserParams[totalNumParam];
 	bool UIUpdateFlag;
-
+	bool fftMatch(fftContainer source, fftContainer compare);
 	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SwitcharooAudioProcessor)
 };

@@ -91,116 +91,8 @@ const String SwitcharooAudioProcessor::getParameterText (int index)
 	else return String::empty;
 }
 
-/*
- * setZerosAndPeaks finds roughly where there are zero values in the waveform but tries to cancel out noise 
- * by looking at the average of a chunk of values rather than one value at a time. It
- */
-void SwitcharooAudioProcessor::setZerosAndPeaks(const float signal[], const int length, int averagedChunk){
-     int currentPeakIndex = 0;
-     float currentPeakValue = signal[0];
-     float average = 0;
-     int realign = averagedChunk / 2;
-     for(int i = 0; i < averagedChunk && i<length; i++){
-         average+=signal[i];
-     }
-     int sign = average > 0 ? 1 : -1;
-     for(int i = averagedChunk; i < length; i++){
-        average += signal[i] - signal[i-averagedChunk];
-        if((average/averagedChunk) * sign <= 0){
 
-            sign *= -1;
-            currentPeakValue = std::abs(signal[i-realign]);
-            //Move the loop forward without checking to see if the sign changes after each iteration, but still updating peak info
-            while(realign > 0 && i < length-1){
-                i++;
-                average += signal[i] - signal[i-averagedChunk];
-                if(std::abs(signal[i-averagedChunk]) > currentPeakValue){
-                    currentPeakValue = std::abs(signal[i-averagedChunk]);
-                    currentPeakIndex = i-averagedChunk;
-                }
-                realign--;
-            }
-            realign = averagedChunk / 2;
-            //Now we check if the sign changed during realignment. if not, we can commit our zero and peak.
-            if((average/averagedChunk) * sign > 0){
-                zerosAndPeaks.push_back(zeroAndPeak_t{i - averagedChunk, currentPeakValue});
-            }
-            else{
-                sign *= -1;
-            }
-        }
-        else{
-            if(std::abs(signal[i-averagedChunk]) > currentPeakValue){
-                currentPeakValue = std::abs(signal[i-averagedChunk]);
-                currentPeakIndex = i-averagedChunk;
-            }
-        }
-    }
-}
 
-const int SwitcharooAudioProcessor::nearestZero(const int index){
-	int lastZero = 0;
-	try{
-		if (zerosAndPeaks.empty()){
-			throw;
-		}
-	}
-	catch (int e){
-		std::cerr << "peaksAndZeroes is empty." << std::endl;
-		return 0;
-	}
-
-	for (std::vector<zeroAndPeak_t>::iterator i = zerosAndPeaks.begin(); i != zerosAndPeaks.end(); i++){
-		jassert(i->zero > lastZero);
-		if (i->zero > index){
-			if (index - lastZero < i->zero - index){
-				return lastZero;
-			}
-			else{
-				return i->zero;
-			}
-		}
-		lastZero = i->zero;
-	}
-	return lastZero;
-}
-/*
- * getSlices returns a list of slices into the sound. the slices are based on jumps in amplitude in the sound, 
- * large enough jumps will result in a slice at the beginning of the jump. large enough is determined by the threshold parameter
- */            
-std::list<int>& SwitcharooAudioProcessor::getSlicesByAmplitude(const float signal[],const int length,
-	const float threshold, int minSliceLen){
-	if (zerosAndPeaks.empty()){
-		setZerosAndPeaks(signal, length, 1000);
-	}
-	//std::list<int> zeroesAndPeaks = zerosAndPeaksGlobal;
-	static std::list<int> slices = std::list<int>();
-	slices.push_back(0);
-    int sign = zerosAndPeaks[0].peak > zerosAndPeaks[1].peak ? 1 : -1;
-    int slicePoint = 0;
-    int averagedChunk = 6;
-    
-    float average;
-    std::vector<zeroAndPeak_t>::iterator i = zerosAndPeaks.begin();
-    std::vector<zeroAndPeak_t>::iterator  lastZeroAndPeak = zerosAndPeaks.begin();
-    /*for(i = zerosAndPeaks.begin(); i->zero != zerosAndPeaks[averagedChunk].zero && i != zerosAndPeaks.end(); i++){
-        
-    }*/
-	while(i != zerosAndPeaks.end()){
-        if(std::abs(i->peak - lastZeroAndPeak->peak) * sign < 0){
-            if(sign == 1){
-                slicePoint = lastZeroAndPeak->zero;
-                sign *= -1;
-            }
-        }
-      if(std::abs(i->peak - lastZeroAndPeak->peak) > threshold && i->zero - slices.back() > minSliceLen){
-            slices.push_back(i->zero);
-        }
-       lastZeroAndPeak = i;
-	   i++;
-    }
-    return slices;
-}
 
 const File SwitcharooAudioProcessor::loadFile()
 {
@@ -301,34 +193,7 @@ void SwitcharooAudioProcessor::releaseResources()
 void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
 	//processAudioBuffer(buffer);
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-   /* File compareFile = loadFile();
-    float* channelData;
-    float* sampleData;
-    int sampleNum;
-//    AudioFormatManager format;
-    AudioFormatManager* format = new AudioFormatManager();
-    format->registerBasicFormats();
-    AudioFormatReader* compareReader = format->createReaderFor(compareFile);
-    AudioSampleBuffer * compareBuffer;
-    compareReader->read(compareBuffer, 0, compareReader->lengthInSamples, 0, true, true);
-    std::list<std::vector<int> > segmentIndexes;
-    for (int channel = 0; channel < getNumInputChannels(); ++channel)
-    {
-        std::list<std::vector<int> >::iterator segments = segmentIndexes.begin();
-        channelData = buffer.getSampleData (channel);
-        sampleData = compareBuffer->getSampleData(channel);
-        sampleNum = buffer.getNumSamples();
-        segmentIndexes.push_back(getSegments(channelData,sampleNum));
-        for(std::vector<int>::iterator segment = segments->begin(); segment != segments->end(); segment++){
-            if(segment+1 != segments->end()){
-                compareSamples(channelData,sampleData,*(segment+1) - *segment, compareBuffer->getNumSamples(), *segment );
-            }
-        }
-        segments++;
-    }
-	*/
+
     // In case we have more outputs than inputs, we'll clear any output
     // channels that didn't contain input data, (because these aren't
     // guaranteed to be empty - they may contain garbage).
@@ -337,38 +202,7 @@ void SwitcharooAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     //    buffer.clear (i, 0, buffer.getNumSamples());
     //}
 }
-/*
-std::vector<std::pair<int,int> > SwitcharooAudioProcessor::getSlices(float *channelData){
-	//this does slicing by volume of some kind.
-	std::vector<std::pair<int, int> > ret;
-
-	return ret;
-}
-
-std::vector<int> SwitcharooAudioProcessor::getSegments(float* channelData, int length){
-    std::vector<int> returnSegments;
-    for(int i= 0; i<length-1; i+=getSampleRate()) returnSegments.push_back(i);
-    returnSegments.push_back(length-1);
-    return returnSegments;
-}
-void SwitcharooAudioProcessor::compareSamples(float* sourceData, float* sampleData, int sourceLength, int sampleLength, int offset){
-    int sampleIndex, comparisonValue, bestComparisonValue, bestComparisonStart;    
-    for(int sampleStart = 0; sampleStart<sampleLength-sourceLength; sampleStart++){
-        for(int sourceIndex = offset; sourceIndex<offset+sourceLength; sourceIndex++){
-            sampleIndex = sampleStart+sourceIndex-offset;
-            comparisonValue += abs(sourceData[sourceIndex] - sampleData[sampleIndex]);
-        }
-        if(comparisonValue < bestComparisonValue){
-            bestComparisonValue = comparisonValue;
-            bestComparisonStart = sampleStart;
-        }       
-    }
-    for(int i = bestComparisonStart; i< bestComparisonStart+sourceLength; i++){
-        sourceData[offset + i-bestComparisonStart] = sampleData[i];
-    }
-}
-            
-*/        
+     
 
 
         
@@ -416,9 +250,11 @@ fftContainer * SwitcharooAudioProcessor::doFFT(const float * signal, int signalL
 	kiss_fft_cpx * fout = new kiss_fft_cpx[(nextPow2 / 2) + 1];
 
 	/*ignore first sample might be header data*/
+	fin[0] = 0;
 	for (int j = 1; j < signalLength; j++){
 		fin[j] = signal[j];
 	}
+	fin[signalLength + 1] = 0;
 	//pad out next part to make the signal a power of two.
 	int temp_input = signalLength + 1;
 	while (temp_input < nextPow2){
@@ -438,14 +274,18 @@ fftContainer * SwitcharooAudioProcessor::doFFT(const float * signal, int signalL
 		cur_img = fout[k].i / (nextPow2 / 2);
 
 		real = (cur_real * cur_real) + (cur_img * cur_img);
-		fftSignal[k] = sqrt(real)/(nextPow2/2);
+		fftSignal[k] = sqrt(real)/44100;
 		if (fund < sqrt(real)){
 			fund = sqrt(real);
 		}
 		real_signal[k] = std::complex<float>(cur_real, cur_img);
 	}
+	float * rawAudio =new float[signalLength];
+	for (int a = 0; a < signalLength; a++){
+		rawAudio[a] = signal[a];
+	}
 	 //fftContainer retFFT((nextPow2 / 2) + 1, fund, fftSignal, real_signal);
-	fftContainer * retFFT = new fftContainer((nextPow2 / 2) + 1, fund, fftSignal, real_signal, fin, signalLength);
+	fftContainer * retFFT = new fftContainer((nextPow2 / 2) + 1, fund, fftSignal, real_signal, rawAudio, signalLength);
 	free(cfg);
 	return retFFT;
 }
@@ -463,7 +303,7 @@ void SwitcharooAudioProcessor::doFFTtoSlices(std::list<int> timeslices, const fl
 	const float * sig;
 	int time_slice_loop = 0;
 	int prev_slice;
-	int last_slice;
+	int last_slice =0;
 	int cur_slice_len;
 	float * sigStart;
 	for (std::list<int>::iterator it = timeslices.begin(); it != timeslices.end(); it++){
@@ -544,36 +384,73 @@ void SwitcharooAudioProcessor::doComparison(songProperties * source, songPropert
 	doFFTtoSlices(*source->timeSlices, source->samples, source->totalNumSamples, "source");
 	doFFTtoSlices(*compare->timeSlices, compare->samples, compare->totalNumSamples, "compare");
 	int totalLen = 0;
+	float * rawAudioCopy;
 	std::vector< std::pair<float *, int>> matched;
 	for (int i = 0; i < fftSource.size() - 1; i++){
 		float * sampStart;
-		int thisSliceLen;
-		for (int j = 0; j < fftCompare.size() - 1; j++){
-			if ((fftSource[i].length >fftCompare[j].length - 500)
-				&& (fftSource[i].length < fftCompare[j].length + 500)){
+		int thisSliceLen =0;
+		for (int j = i; j < fftCompare.size() - 1; j++){
+			//here is where the matching happens.  
+			bool isMatch = fftMatch(fftSource[i], fftCompare[j]);
+			//matching function
+			if (isMatch){
 				//call match for now.
-				sampStart = fftCompare[j].rawAudio;
-				thisSliceLen = fftCompare[j].length;
+				sampStart = new float[fftCompare[j].rawAudioLength];
+				for (int a = 0; a < fftCompare[j].rawAudioLength; a++){
+					sampStart[a] = fftCompare[j].rawAudio[a];
+				}
+				thisSliceLen = fftCompare[j].rawAudioLength;
+
+				
+				matched.push_back(std::pair<float *, int>(sampStart, thisSliceLen));
+				totalLen += fftCompare[j].rawAudioLength;
 				//want to look at the next slice to compare.
 				if (i < fftSource.size() - 1){
 					i++;
+					//go back to first sample
+					//j=0
 				}
-				else{
+				if (i >= fftSource.size() - 1){
 					//escape to upper for loop or it should be done i guess.
 					break;
 				}
-				j = 0;
-				matched.push_back(std::pair<float *, int>(sampStart, thisSliceLen));
-				totalLen += fftCompare[j].rawAudioLength;
+
+			}
+			else{
+				thisSliceLen = 0;
 			}
 		}
-		sampStart = fftSource[i].rawAudio;
-		thisSliceLen = fftSource[i].length;
+		sampStart = new float[fftSource[i].rawAudioLength];
+		for (int a = 0; a < fftSource[i].rawAudioLength; a++){
+			sampStart[a] = fftSource[i].rawAudio[a];
+		}
+		thisSliceLen = fftSource[i].rawAudioLength;
 		matched.push_back(std::pair<float *, int>(sampStart, thisSliceLen));
 		totalLen += fftSource[i].rawAudioLength;
 	}
 	outputSong = matched;
 	outSongLength = totalLen;
+}
+
+bool SwitcharooAudioProcessor::fftMatch(fftContainer source, fftContainer compare){
+	//fft lengths should be the same.
+	if (source.length != compare.length){
+		return false;
+	}
+	int match = 0;
+	for (int i = 0; i < source.length; i++){
+		//greater by .1 or less by .1
+		if (source.amplitudes[i] >= (compare.amplitudes[i] - .1) && source.amplitudes[i] <= (compare.amplitudes[i] + .1)){
+			match++;
+		}
+	}
+	if (match > source.length * 3 / 4){
+		return true;
+	}
+	else{
+		false;
+	}
+
 }
 //==============================================================================
 // This creates new instances of the plugin..

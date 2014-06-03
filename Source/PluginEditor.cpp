@@ -97,8 +97,7 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 {
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
-	String samplemsg = "";
-	int slicesLen = 0;
+
 
     g.fillAll (Colours::white);
 	g.drawSingleLineText("Thresh", 0, 750,Justification::left);
@@ -108,126 +107,28 @@ void SwitcharooAudioProcessorEditor::paint (Graphics& g)
 		"tmp index" + std::to_string(tmp_index) + " File Numba: " + std::to_string(fileNumba),
 		getX(), getHeight() /2 +30, getWidth()
 	);
-	if (thisProcessor->song1 != NULL && thisProcessor->song2 != NULL){
-		int len1 = thisProcessor->song1->timeSlices->size();
-		int len2 = thisProcessor->song2->timeSlices->size();
-		String songSamps = "";
-		for (int i = 0; i < 10; i++){
-			songSamps = songSamps + std::to_string(thisProcessor->song1->samples[i]) + ",";
-			songSamps = songSamps + std::to_string(thisProcessor->song2->samples[i]) + ",";
+	if (outSongBuf != NULL){
+		String outSamps = "";
+		for (int a = 0; a < 30; a++){
+			outSamps = outSamps + std::to_string(outSongSamps[a]) + ",";
 		}
-		String totalNums = "";
-		totalNums = " Song1_totalSamps:" + std::to_string(thisProcessor->song1->totalNumSamples)
-			+ " Song2_totalSamps:" + std::to_string(thisProcessor->song2->totalNumSamples);
+		String outSampLens = "";
+		for (int b = 0; b < thisProcessor->outputSong.size() - 1; b++){
+			outSampLens = outSampLens + std::to_string(thisProcessor->outputSong[b].second) + ",";
+		}
 		g.drawMultiLineText(
-			"YOU CAN DO A COMPARISON!!! slices in song 1:" + std::to_string(len1) 
-			+ " amount in song 2:" + std::to_string(len2)
-			+ " songSamps" + songSamps + totalNums,
-			getX(), getHeight() / 2 + 100, getWidth());
-	}
-
-	if (isSetTest == 1){
-		g.drawMultiLineText(
-			"imaginaries " + global_img + " reals " + global_reals,
-			getX(), 20,
-			getWidth());
-	}
-/*	if (!thisProcessor->fftVector.empty()){
-		String msg = "amount of ffts ="+ std::to_string(thisProcessor->fftVector.size()) +"\n";
-		for (int i = 0; i <= thisProcessor->fftVector.size()-1; i++){
-			//get length
-			int thisFFTlen = thisProcessor->fftVector[i].length;
-			float thisFFTfund = thisProcessor->fftVector[i].fundamental;
-			String ffts = "";
-			for (int j = 0; j < 20; j++){
-				ffts = ffts + std::to_string(thisProcessor->fftVector[i].amplitudes[j]) + ", ";
-			}
-			
-			msg = msg + "FFT-" + std::to_string(i) + " length:" + std::to_string(thisFFTlen) + 
-				" fundamental:" + std::to_string(thisFFTfund) +" first 20 ffts:" + ffts +"\n";
-		}
-		g.drawMultiLineText(msg,
-			getX(), (getHeight() *2)/3,
-			getWidth());
-
-	}*/
-	if (retFFT != NULL){
-		String msg;
-		int skipped = 0;
-		msg = "";
-		//prints a ratio of fundamentals
-		int length = retFFT->length;
-		float fund = retFFT->fundamental;
-		float * retSignal = retFFT->amplitudes;
-		if (length > 1000){
-			length = 1000;
-		} 
-		for (int j = 0; j < 20; j++){
-			if (!(retSignal[j] < 0)){
-				msg = msg + std::to_string(retSignal[j]) + " ,";
-			}
-			else {
-				msg = msg + " _ ";
-				skipped++;
-			}
-
-			//msg = msg + "AUDIO" +std::to_string(retFFT->rawAudio[j]) + ",";
-			//msg = msg + std::to_string(arrayOsamps[j]) + ", ";
-		}
-		
-		g.drawMultiLineText("fftLength: " + std::to_string(retFFT->length) +" , skipped: "+std::to_string(skipped)+ " frequencies:" + msg,
-			getX(), 20, //getHeight() /2,
-			getWidth());
-		
-	}
-	if (thumbalina != NULL && (fileNumba == 1 || fileNumba ==2)){
-		Rectangle<int> rect(20, 20, getWidth() - 40, getHeight() / 2);
-		g.setColour(Colour(0xcc10b5ad));
-		g.fillRectList(rect);
-		double len = thumbalina->getTotalLength();
-		double start;
-		double end;
-		float zfact;
-		start = 0;
-		end = len;
-		zfact = 1;
-		g.setColour(Colour(0xccFF0000));
-		thumbalina->drawChannels(g, rect, start, end, zfact);
-		//int num_samples = thumbalina->getNumSamplesFinished();
-
-		g.setColour(Colour(0xff030303));
-
-		/*trying to get audio from processBlock*/
-
-		widthOfRect = rect.getWidth();
-		timeLen = len;
-		std::list<int>::iterator it;
-		if (len != 0){
-			if (fileNumba == 1){
-				for (it = timeSlices1->begin(); it != timeSlices1->end(); it++){
-					samplemsg = samplemsg + std::to_string(*it) + ",";
-					slicesLen = timeSlices1->size();
-					const Line<float> testline = drawTimeSlice(rect, len, *it);
-					g.drawLine(testline);
-				}
-				samplemsg = samplemsg + "--------doing slices 1-------";
-			}
-			if (fileNumba == 2) {
-				for (it = timeSlices2->begin(); it != timeSlices2->end(); it++){
-					samplemsg = samplemsg + std::to_string(*it) + ",";
-					slicesLen = timeSlices2->size();
-					const Line<float> testline = drawTimeSlice(rect, len, *it);
-					g.drawLine(testline);
-				}
-				samplemsg = samplemsg + "----------doing slices 2 -------";
-
-			}
-
-		}
+			"Out Song buffers length" + std::to_string(outSongBuf->getNumSamples()) +
+			"Out song samps:" + outSamps +
+			"slice lengths:" + outSampLens,
+			getX(), getHeight() / 2 + 60, getWidth()
+			);
 
 	}
-	g.drawMultiLineText("SliceSampleIndexes:" + samplemsg + " Number Of Slices:" + std::to_string(slicesLen),
-		getX(), getHeight()/ 2 + 45, getWidth());
+	//outputSongDisplay(g);
+	//displayComparisonMsg(g);
+	//fftSourceCompareDisplay(g);
+	doFFTdisplay(g);
+	ThumbnailDisplay(g);
 
 
 }
@@ -272,11 +173,11 @@ void SwitcharooAudioProcessorEditor::resized()
 void SwitcharooAudioProcessorEditor::redoTimeSlices(float newThresh, int newMinSlices){
 	if (fileNumba == 1){
 		timeSlices1->clear();
-		timeSlices1 = &thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
+		timeSlices1 = &thisProcessor->song1->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
 	}
 	if (fileNumba == 2) {
 		timeSlices2->clear();
-		timeSlices2 = &thisProcessor->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
+		timeSlices2 = &thisProcessor->song2->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
 	}
 	repaint();
 } 
@@ -370,12 +271,12 @@ void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked
 	*/
 	}
 	else if (buttonThatWasClicked == doCompare){
-		//thisProcessor->doComparison(thisProcessor->song1, thisProcessor->song1);
+		thisProcessor->doComparison(thisProcessor->song1, thisProcessor->song2);
 		//then write
-		doCompare->setButtonText(TRANS("ALMOST THERE"));
+		doCompare->setButtonText(TRANS("ALMOST THERE")); 
 		writeComparison();
 		doCompare->setButtonText(TRANS("Wrote Something"));
-
+		repaint();
 	}
 	
     //[UserbuttonClicked_Post]
@@ -451,87 +352,96 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	FileInputSource * thisFile = new FileInputSource(file);
 
 	thumbalina->setSource(thisFile);
-
 	/* this will get the array of samples needed to slice*/
 	int64 readerStartSample = 0;
-	AudioSampleBuffer * buf = new AudioSampleBuffer(reader->numChannels, reader->lengthInSamples);
-	reader->read(buf, 1, reader->lengthInSamples-1, readerStartSample + 1, true, true);
-	const float * array_of_samples = buf->getReadPointer(0);
-	arrayOsamps = buf->getReadPointer(0);
-	int64 tmpTotal = reader->lengthInSamples;
+	AudioSampleBuffer * curBuf = new AudioSampleBuffer(reader->numChannels, reader->lengthInSamples);
+	curBuf->clear();
+	reader->read(curBuf, 1, reader->lengthInSamples-1, readerStartSample + 1, true, true);
+	const float * array_of_samples = curBuf->getReadPointer(1);
+	float * tmp_array = new float[reader->lengthInSamples];
+	for (int i = 0; i < curBuf->getNumSamples(); i++){
+		tmp_array[i] = array_of_samples[i];
+	}
+	arrayOsamps = tmp_array;
 //to display audio
+	//songProperties tmp_song);
+
+
 	if (fileNum == 1){
-		timeSlices1 = &thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .005, 51000);
+		thisProcessor->song1 = new songProperties(reader->sampleRate, reader->lengthInSamples,
+			thumbalina->getTotalLength(), arrayOsamps, .5, 2000);
+		timeSlices1 = &thisProcessor->song1->getSlicesByFrequency(array_of_samples, reader->lengthInSamples, 300, 1, 3000);
+		//timeSlices1 = &thisProcessor->song1->getSlicesByAmplitude(arrayOsamps, reader->lengthInSamples, .005, 2000);
 	}
 	if (fileNum == 2){
-		timeSlices2 = &thisProcessor->getSlicesByAmplitude(array_of_samples, reader->lengthInSamples, .005, 51000);
+		thisProcessor->song2 = new songProperties(reader->sampleRate, reader->lengthInSamples,
+			thumbalina->getTotalLength(), arrayOsamps, .5, 2000);
+		timeSlices2 = &thisProcessor->song2->getSlicesByFrequency(array_of_samples, reader->lengthInSamples, 300, 1, 3000);
+
+		//timeSlices2 = &thisProcessor->song2->getSlicesByAmplitude(arrayOsamps, reader->lengthInSamples, .005, 2000);
 	}
-	totalNumSamples = tmpTotal;
-/*	songProperties(int sampRate,
-		std::list<int> * tSlices,
-		int64 totNumSamples,
-		double tLen,
-		const float * samps,
-		int newthresh,
-		int newminSlic)
-*/	
-	songProperties tmp_song(reader->sampleRate, tmpTotal,
-		thumbalina->getTotalLength(), array_of_samples, .5, 2000);
-	
-	if (fileNumba == 1){
-		thisProcessor->song1 = new songProperties(tmp_song);
-	}
-	if(fileNumba == 2){
-		thisProcessor->song2 = new songProperties(tmp_song);
-	}
+	totalNumSamples = reader->lengthInSamples;
 	repaint();
 }
 
 void SwitcharooAudioProcessorEditor::writeComparison(){
-	File outSong = File(File::getSpecialLocation(File::userHomeDirectory).getChildFile("outSong"));
+	File outSong = File(File::getSpecialLocation(File::userHomeDirectory).getChildFile("outSong.wav"));
 	TemporaryFile out(outSong);
 	if (outSong.existsAsFile()){
 		outSong.deleteFile();
-	}
+	}	
 	WavAudioFormat wavFormat;
 	int len = thisProcessor->outSongLength;
 
-	ScopedPointer <FileOutputStream> outStream(out.getFile().createOutputStream());
+	ScopedPointer <OutputStream> outStream(outSong.createOutputStream());
 	//FileOutputStream * outSongStream = outSong.createOutputStream(len);
-	FileOutputStream outSongStream(outSong);
+	//FileOutputStream outSongStream(outSong);
+	float * samps = new float[len];
+	int index = 0;
+
 	if (!thisProcessor->outputSong.empty()){
 		//we are ok
-	/*	if (outSong.existsAsFile()){
-			outSong.deleteFile();
-		}*/
+		for (int cur_clip = 0; cur_clip < thisProcessor->outputSong.size() - 1; cur_clip++){
+			int curSampLen = thisProcessor->outputSong[cur_clip].second;
+			for (int a = 1; a < curSampLen; a++){
+					samps[index] = thisProcessor->outputSong[cur_clip].first[a];
+					index++;
+				}
+			}
 	}
+
+
+	/*
+	TESTING SHIT
+	float * samps = new float[40000];
+	for (int i = 0; i < 40000; i++){
+		samps[i] = .5666;
+	}
+
+	AudioFormatManager * format = new AudioFormatManager();
+	format->registerBasicFormats();
+	AudioFormatReader * reader = format->createReaderFor(testSong);
+	AudioSampleBuffer * buf = new AudioSampleBuffer(reader->numChannels, reader->lengthInSamples);
+	reader->read(buf, 1, reader->lengthInSamples - 1, 1, true, true);
+	*/
+
+	//const float * newSamps = samps;
+	AudioSampleBuffer buf(1, len);
+	buf.copyFrom(0, 0, samps, len);
 	Array<int> posBits = wavFormat.getPossibleBitDepths();
 	StringPairArray metaData = wavFormat.createBWAVMetadata("wombo combo", "switcharoo",
 		"switchdedooo", Time::getCurrentTime(), 44100, "2013-2014");
-	ScopedPointer <AudioFormatWriter> writer = wavFormat.createWriterFor(outStream, 44100, 1, posBits[1], metaData, 0);
-	float * samps = new float[40000];
-	float * samps2 = new float[40000];
-
-	const float * testTemp = new const float[1 ];
-	for (int i = 0; i < 40000; i++){
-		samps[i] = 1.5666;
-		samps2[i] = -1.5666;
-	}
-	float ** totalSamps = new float *[2];
-	totalSamps[0] = samps;
-	totalSamps[1] = samps2;
-
-	float * const * tmp = totalSamps;
-	AudioSampleBuffer buf(tmp, 2, 40000);
-	//const float*const * allsamples;
-		//writer->writeFromFloatArrays(tmp, 1, len);
-	writer->writeFromAudioSampleBuffer(buf, 1, 35000);
+	ScopedPointer <AudioFormatWriter> writer = wavFormat.createWriterFor(outStream, 44100.0, buf.getNumChannels(),
+		32, metaData, 0);
 	outStream.release();
+
+	writer->writeFromAudioSampleBuffer(buf, 0, buf.getNumSamples());
 		//delete (&outSongStream);
 		out.overwriteTargetFileWithTemporary();
-		writer = NULL;
-
-	}
+		writer = nullptr;
+		outSongBuf = &buf;
+		outSongSamps = samps;
+}
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
 void SwitcharooAudioProcessorEditor::timerCallback()
@@ -553,6 +463,173 @@ void SwitcharooAudioProcessorEditor::timerCallback()
 	}
 
 }
+/*********************************/
+//    Debug DISPLAY FUNCTIONS    //
+/*********************************/
+void SwitcharooAudioProcessorEditor::fftSourceCompareDisplay(Graphics &g){
+	if (!thisProcessor->fftCompare.empty()){
+		String msg = "amount of ffts =" + std::to_string(thisProcessor->fftCompare.size()) + "\n";
+		for (int i = 0; i <= thisProcessor->fftCompare.size() - 1; i++){
+			//get length
+			int thisFFTlen = thisProcessor->fftCompare[i].rawAudioLength;
+			float thisFFTfund = thisProcessor->fftCompare[i].fundamental;
+			String ffts = "";
+			for (int j = 0; j < 20; j++){
+				ffts = ffts + std::to_string(thisProcessor->fftCompare[i].rawAudio[j]) + ", ";
+			}
+
+			msg = msg + "FFT-" + std::to_string(i) + " length:" + std::to_string(thisFFTlen) +
+				" fundamental:" + std::to_string(thisFFTfund) + " first 20 ffts:" + ffts + "\n";
+		}
+		g.drawMultiLineText(msg,
+			getX(), (getHeight()) / 3,
+			getWidth());
+
+	}
+
+	if (!thisProcessor->fftSource.empty()){
+		String msg = "amount of ffts =" + std::to_string(thisProcessor->fftSource.size()) + "\n";
+		for (int i = 0; i <= thisProcessor->fftSource.size() - 1; i++){
+			//get length
+			int thisFFTlen = thisProcessor->fftSource[i].rawAudioLength;
+			float thisFFTfund = thisProcessor->fftSource[i].fundamental;
+			String ffts = "";
+			for (int j = 0; j < 20; j++){
+				ffts = ffts + std::to_string(thisProcessor->fftSource[i].rawAudio[j]) + ", ";
+			}
+
+			msg = msg + "FFT-" + std::to_string(i) + " length:" + std::to_string(thisFFTlen) +
+				" fundamental:" + std::to_string(thisFFTfund) + " first 20 ffts:" + ffts + "\n";
+		}
+		g.drawMultiLineText(msg,
+			getX(), (getHeight() * 2) / 3,
+			getWidth());
+
+	}
+}
+
+void SwitcharooAudioProcessorEditor::ThumbnailDisplay(Graphics &g){
+	String samplemsg = "";
+	int slicesLen = 0;
+	if (thumbalina != NULL && (fileNumba == 1 || fileNumba == 2)){
+		Rectangle<int> rect(20, 20, getWidth() - 40, getHeight() / 2);
+		g.setColour(Colour(0xcc10b5ad));
+		g.fillRectList(rect);
+		double len = thumbalina->getTotalLength();
+		double start;
+		double end;
+		float zfact;
+		start = 0;
+		end = len;
+		zfact = 1;
+		g.setColour(Colour(0xccFF0000));
+		thumbalina->drawChannels(g, rect, start, end, zfact);
+		//int num_samples = thumbalina->getNumSamplesFinished();
+
+		g.setColour(Colour(0xff030303));
+
+		/*trying to get audio from processBlock*/
+
+		widthOfRect = rect.getWidth();
+		timeLen = len;
+		std::list<int>::iterator it;
+		if (len != 0){
+			if (fileNumba == 1){
+				for (it = timeSlices1->begin(); it != timeSlices1->end(); it++){
+					samplemsg = samplemsg + std::to_string(*it) + ",";
+					slicesLen = timeSlices1->size();
+					const Line<float> testline = drawTimeSlice(rect, len, *it);
+					g.drawLine(testline);
+				}
+				samplemsg = samplemsg + "--------doing slices 1-------";
+			}
+			if (fileNumba == 2) {
+				for (it = timeSlices2->begin(); it != timeSlices2->end(); it++){
+					samplemsg = samplemsg + std::to_string(*it) + ",";
+					slicesLen = timeSlices2->size();
+					const Line<float> testline = drawTimeSlice(rect, len, *it);
+					g.drawLine(testline);
+				}
+				samplemsg = samplemsg + "----------doing slices 2 -------";
+
+			}
+
+		}
+
+	}
+	g.drawMultiLineText("SliceSampleIndexes:" + samplemsg + " Number Of Slices:" + std::to_string(slicesLen),
+		getX(), getHeight() / 2 + 45, getWidth());
+
+}
+void SwitcharooAudioProcessorEditor::doFFTdisplay(Graphics &g){
+	if (retFFT != NULL){
+		String msg;
+		int skipped = 0;
+		msg = "";
+		//prints a ratio of fundamentals
+		int length = retFFT->length;
+		float fund = retFFT->fundamental;
+		float * retSignal = retFFT->amplitudes;
+		if (length > 1000){
+			length = 1000;
+		}
+		for (int j = 0; j < 20; j++){
+			if (!(retSignal[j] < 0)){
+				msg = msg + std::to_string(retSignal[j]) + " ,";
+			}
+			else {
+				msg = msg + " _ ";
+				skipped++;
+			}
+
+			//msg = msg + "AUDIO" +std::to_string(retFFT->rawAudio[j]) + ",";
+			//msg = msg + std::to_string(arrayOsamps[j]) + ", ";
+		}
+
+		g.drawMultiLineText("fftLength: " + std::to_string(retFFT->length) + " , skipped: " + std::to_string(skipped) + " frequencies:" + msg,
+			getX(), 20, //getHeight() /2,
+			getWidth());
+
+	}
+}
+void SwitcharooAudioProcessorEditor::displayComparisonMsg(Graphics &g){
+	if (thisProcessor->song1 != NULL && thisProcessor->song2 != NULL){
+		int len1 = thisProcessor->song1->timeSlices->size();
+		int len2 = thisProcessor->song2->timeSlices->size();
+		String songSamps = "";
+		for (int i = 0; i < 10; i++){
+			songSamps = songSamps + std::to_string(thisProcessor->song1->samples[i]) + ",";
+			songSamps = songSamps + std::to_string(thisProcessor->song2->samples[i]) + ",";
+		}
+		String totalNums = "";
+		totalNums = " Song1_totalSamps:" + std::to_string(thisProcessor->song1->totalNumSamples)
+		+ " Song2_totalSamps:" + std::to_string(thisProcessor->song2->totalNumSamples);
+		g.drawMultiLineText(
+		"YOU CAN DO A COMPARISON!!! slices in song 1:" + std::to_string(len1)
+		+ " amount in song 2:" + std::to_string(len2)
+		+ " songSamps" + songSamps + totalNums,
+		getX(), getHeight() / 2 + 200, getWidth());
+	}
+
+}
+
+void SwitcharooAudioProcessorEditor::outputSongDisplay(Graphics &g){
+	if (!thisProcessor->outputSong.empty()){
+		String combined = "A bunch of Slices and their audio samples \n";
+		for (int i = 0; i < thisProcessor->outputSong.size() - 1; i++){
+			String sliceLen = std::to_string(thisProcessor->outputSong[i].second);
+			String sliceAudio = "start of slice--" + std::to_string(i) + "\'s audio";
+			for (int b = 0; b < 20; b++){
+				sliceAudio = sliceAudio + std::to_string(thisProcessor->outputSong[i].first[b])+",";
+			}
+			combined = combined + sliceLen + sliceAudio + "\n";
+		}
+		g.drawMultiLineText(
+			combined,
+			getX(), getHeight() / 2 + 200, getWidth());
+	}
+}
+
 //[/MiscUserCode]
 
 
