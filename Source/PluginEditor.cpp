@@ -173,11 +173,15 @@ void SwitcharooAudioProcessorEditor::resized()
 void SwitcharooAudioProcessorEditor::redoTimeSlices(float newThresh, int newMinSlices){
 	if (fileNumba == 1){
 		timeSlices1->clear();
-		timeSlices1 = &thisProcessor->song1->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
+		//timeSlices1 = &thisProcessor->song1->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
+		timeSlices1 = &thisProcessor->song2->getSlicesByFrequency(arrayOsamps, totalNumSamples, 300, newThresh, newMinSlices);
+
 	}
 	if (fileNumba == 2) {
 		timeSlices2->clear();
-		timeSlices2 = &thisProcessor->song2->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
+		//timeSlices2 = &thisProcessor->song2->getSlicesByAmplitude(arrayOsamps, totalNumSamples, newThresh, newMinSlices);
+		timeSlices2 = &thisProcessor->song2->getSlicesByFrequency(arrayOsamps, totalNumSamples, 300, newThresh, newMinSlices);
+
 	}
 	repaint();
 } 
@@ -260,15 +264,15 @@ void SwitcharooAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked
 	}
     else if (buttonThatWasClicked == fftOnSong)
     {
-		File compFile = loadFile();
+		/*File compFile = loadFile();
 		if (compFile != File()){
 			registerFFT(compFile);
 			repaint();
-		}
-		/*
+		}*/
+		
 		doTestFFT(8, 1);
 		repaint();
-	*/
+	
 	}
 	else if (buttonThatWasClicked == doCompare){
 		thisProcessor->doComparison(thisProcessor->song1, thisProcessor->song2);
@@ -358,11 +362,11 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	curBuf->clear();
 	reader->read(curBuf, 1, reader->lengthInSamples-1, readerStartSample + 1, true, true);
 	const float * array_of_samples = curBuf->getReadPointer(1);
-	float * tmp_array = new float[reader->lengthInSamples];
-	for (int i = 0; i < curBuf->getNumSamples(); i++){
-		tmp_array[i] = array_of_samples[i];
-	}
-	arrayOsamps = tmp_array;
+	//float * tmp_array = new float[reader->lengthInSamples];
+	//for (int i = 0; i < curBuf->getNumSamples(); i++){
+	//	tmp_array[i] = array_of_samples[i];
+//	}
+	arrayOsamps = array_of_samples;
 //to display audio
 	//songProperties tmp_song);
 
@@ -370,13 +374,13 @@ void SwitcharooAudioProcessorEditor::setupThumb(AudioFormatManager* format, File
 	if (fileNum == 1){
 		thisProcessor->song1 = new songProperties(reader->sampleRate, reader->lengthInSamples,
 			thumbalina->getTotalLength(), arrayOsamps, .5, 2000);
-		timeSlices1 = &thisProcessor->song1->getSlicesByFrequency(array_of_samples, reader->lengthInSamples, 300, 1, 3000);
+		timeSlices1 = &thisProcessor->song1->getSlicesByFrequency(array_of_samples, reader->lengthInSamples, 300, 1, 8000);
 		//timeSlices1 = &thisProcessor->song1->getSlicesByAmplitude(arrayOsamps, reader->lengthInSamples, .005, 2000);
 	}
 	if (fileNum == 2){
 		thisProcessor->song2 = new songProperties(reader->sampleRate, reader->lengthInSamples,
 			thumbalina->getTotalLength(), arrayOsamps, .5, 2000);
-		timeSlices2 = &thisProcessor->song2->getSlicesByFrequency(array_of_samples, reader->lengthInSamples, 300, 1, 3000);
+		timeSlices2 = &thisProcessor->song2->getSlicesByFrequency(array_of_samples, reader->lengthInSamples, 300, 1, 8000);
 
 		//timeSlices2 = &thisProcessor->song2->getSlicesByAmplitude(arrayOsamps, reader->lengthInSamples, .005, 2000);
 	}
@@ -511,6 +515,7 @@ void SwitcharooAudioProcessorEditor::fftSourceCompareDisplay(Graphics &g){
 void SwitcharooAudioProcessorEditor::ThumbnailDisplay(Graphics &g){
 	String samplemsg = "";
 	int slicesLen = 0;
+	String over400 = "";
 	if (thumbalina != NULL && (fileNumba == 1 || fileNumba == 2)){
 		Rectangle<int> rect(20, 20, getWidth() - 40, getHeight() / 2);
 		g.setColour(Colour(0xcc10b5ad));
@@ -534,21 +539,30 @@ void SwitcharooAudioProcessorEditor::ThumbnailDisplay(Graphics &g){
 		timeLen = len;
 		std::list<int>::iterator it;
 		if (len != 0){
+			int a = 0;
 			if (fileNumba == 1){
-				for (it = timeSlices1->begin(); it != timeSlices1->end(); it++){
+				slicesLen = timeSlices1->size();
+				if (slicesLen > 350){
+					over400 = "displaying 350 of" + std::to_string(slicesLen);
+				}
+				for (it = timeSlices1->begin(); (it != timeSlices1->end() || a == 350); it++){
 					samplemsg = samplemsg + std::to_string(*it) + ",";
-					slicesLen = timeSlices1->size();
 					const Line<float> testline = drawTimeSlice(rect, len, *it);
 					g.drawLine(testline);
+					a++;
 				}
 				samplemsg = samplemsg + "--------doing slices 1-------";
 			}
 			if (fileNumba == 2) {
-				for (it = timeSlices2->begin(); it != timeSlices2->end(); it++){
+				slicesLen = timeSlices2->size();
+				if (slicesLen > 350){
+					over400 = "displaying 350 of" + std::to_string(slicesLen);
+				}
+				for (it = timeSlices2->begin(); (it != timeSlices2->end() || a == 350); it++){
 					samplemsg = samplemsg + std::to_string(*it) + ",";
-					slicesLen = timeSlices2->size();
 					const Line<float> testline = drawTimeSlice(rect, len, *it);
 					g.drawLine(testline);
+					a++;
 				}
 				samplemsg = samplemsg + "----------doing slices 2 -------";
 
@@ -557,7 +571,7 @@ void SwitcharooAudioProcessorEditor::ThumbnailDisplay(Graphics &g){
 		}
 
 	}
-	g.drawMultiLineText("SliceSampleIndexes:" + samplemsg + " Number Of Slices:" + std::to_string(slicesLen),
+	g.drawMultiLineText("SliceSampleIndexes:" + samplemsg + " Number Of Slices:" + std::to_string(slicesLen) + over400,
 		getX(), getHeight() / 2 + 45, getWidth());
 
 }

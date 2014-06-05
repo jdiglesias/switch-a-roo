@@ -27,12 +27,12 @@ class ProcessorParameterPropertyComp   : public PropertyComponent,
                                          private Timer
 {
 public:
-    ProcessorParameterPropertyComp (const String& name, AudioProcessor& p, int paramIndex)
+    ProcessorParameterPropertyComp (const String& name, AudioProcessor& p, const int index_)
         : PropertyComponent (name),
           owner (p),
-          index (paramIndex),
+          index (index_),
           paramHasChanged (false),
-          slider (p, paramIndex)
+          slider (p, index_)
     {
         startTimer (100);
         addAndMakeVisible (slider);
@@ -44,19 +44,15 @@ public:
         owner.removeListener (this);
     }
 
-    void refresh() override
+    void refresh()
     {
         paramHasChanged = false;
-
-        if (slider.getThumbBeingDragged() < 0)
-            slider.setValue (owner.getParameter (index), dontSendNotification);
-
-        slider.updateText();
+        slider.setValue (owner.getParameter (index), dontSendNotification);
     }
 
-    void audioProcessorChanged (AudioProcessor*) override  {}
+    void audioProcessorChanged (AudioProcessor*)  {}
 
-    void audioProcessorParameterChanged (AudioProcessor*, int parameterIndex, float) override
+    void audioProcessorParameterChanged (AudioProcessor*, int parameterIndex, float)
     {
         if (parameterIndex == index)
             paramHasChanged = true;
@@ -80,34 +76,27 @@ private:
     class ParamSlider  : public Slider
     {
     public:
-        ParamSlider (AudioProcessor& p, int paramIndex)  : owner (p), index (paramIndex)
+        ParamSlider (AudioProcessor& p, const int index_)
+            : owner (p),
+              index (index_)
         {
-            const int steps = owner.getParameterNumSteps (index);
-
-            if (steps > 1 && steps < 0x7fffffff)
-                setRange (0.0, 1.0, 1.0 / (steps - 1.0));
-            else
-                setRange (0.0, 1.0);
-
+            setRange (0.0, 1.0, 0.0);
             setSliderStyle (Slider::LinearBar);
             setTextBoxIsEditable (false);
-            setScrollWheelEnabled (true);
+            setScrollWheelEnabled (false);
         }
 
-        void valueChanged() override
+        void valueChanged()
         {
             const float newVal = (float) getValue();
 
             if (owner.getParameter (index) != newVal)
-            {
                 owner.setParameterNotifyingHost (index, newVal);
-                updateText();
-            }
         }
 
-        String getTextFromValue (double /*value*/) override
+        String getTextFromValue (double /*value*/)
         {
-            return owner.getParameterText (index) + " " + owner.getParameterLabel (index).trimEnd();
+            return owner.getParameterText (index);
         }
 
     private:

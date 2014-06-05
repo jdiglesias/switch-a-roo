@@ -191,15 +191,9 @@ public:
 
         If set to false, the scrollbars won't ever appear. When true (the default)
         they will appear only when needed.
-
-        The allowVerticalScrollingWithoutScrollbar parameters allow you to enable
-        mouse-wheel scrolling even when there the scrollbars are hidden. When the
-        scrollbars are visible, these parameters are ignored.
     */
     void setScrollBarsShown (bool showVerticalScrollbarIfNeeded,
-                             bool showHorizontalScrollbarIfNeeded,
-                             bool allowVerticalScrollingWithoutScrollbar = false,
-                             bool allowHorizontalScrollingWithoutScrollbar = false);
+                             bool showHorizontalScrollbarIfNeeded);
 
     /** True if the vertical scrollbar is enabled.
         @see setScrollBarsShown
@@ -264,9 +258,9 @@ private:
     int scrollBarThickness;
     int singleStepX, singleStepY;
     bool showHScrollbar, showVScrollbar, deleteContent;
-    bool allowScrollingWithoutScrollbarV, allowScrollingWithoutScrollbarH;
     Component contentHolder;
-    ScrollBar verticalScrollBar, horizontalScrollBar;
+    ScrollBar verticalScrollBar;
+    ScrollBar horizontalScrollBar;
     Point<int> viewportPosToCompPos (Point<int>) const;
 
     void updateVisibleArea();

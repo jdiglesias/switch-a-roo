@@ -91,7 +91,7 @@ DECLARE_JNI_CLASS (CanvasMinimal, "android/graphics/Canvas");
  METHOD (hasFocus,      "hasFocus",         "()Z") \
  METHOD (invalidate,    "invalidate",       "(IIII)V") \
  METHOD (containsPoint, "containsPoint",    "(II)Z") \
- METHOD (showKeyboard,  "showKeyboard",     "(Ljava/lang/String;)V") \
+ METHOD (showKeyboard,  "showKeyboard",     "(Z)V") \
  METHOD (createGLView,  "createGLView",     "()L" JUCE_ANDROID_ACTIVITY_CLASSPATH "$OpenGLView;") \
 
 DECLARE_JNI_CLASS (ComponentPeerView, JUCE_ANDROID_ACTIVITY_CLASSPATH "$ComponentPeerView");
@@ -378,30 +378,14 @@ public:
             handleFocusLoss();
     }
 
-    static const char* getVirtualKeyboardType (TextInputTarget::VirtualKeyboardType type) noexcept
+    void textInputRequired (const Point<int>&) override
     {
-        switch (type)
-        {
-            case TextInputTarget::textKeyboard:          return "text";
-            case TextInputTarget::numericKeyboard:       return "number";
-            case TextInputTarget::urlKeyboard:           return "textUri";
-            case TextInputTarget::emailAddressKeyboard:  return "textEmailAddress";
-            case TextInputTarget::phoneNumberKeyboard:   return "phone";
-            default:                                     jassertfalse; break;
-        }
-
-        return "text";
-    }
-
-    void textInputRequired (Point<int>, TextInputTarget& target) override
-    {
-        view.callVoidMethod (ComponentPeerView.showKeyboard,
-                             javaString (getVirtualKeyboardType (target.getKeyboardType())).get());
+        view.callVoidMethod (ComponentPeerView.showKeyboard, true);
     }
 
     void dismissPendingTextInput() override
     {
-        view.callVoidMethod (ComponentPeerView.showKeyboard, javaString ("").get());
+        view.callVoidMethod (ComponentPeerView.showKeyboard, false);
      }
 
     //==============================================================================

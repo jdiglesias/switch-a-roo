@@ -877,7 +877,7 @@ public:
         shouldDeactivateTitleBar = oldDeactivate;
     }
 
-    void textInputRequired (Point<int>, TextInputTarget&) override
+    void textInputRequired (const Point<int>&) override
     {
         if (! hasCreatedCaret)
         {
@@ -2135,8 +2135,7 @@ private:
     bool isConstrainedNativeWindow() const
     {
         return constrainer != nullptr
-                && (styleFlags & (windowHasTitleBar | windowIsResizable)) == (windowHasTitleBar | windowIsResizable)
-                && ! isKioskMode();
+                && (styleFlags & (windowHasTitleBar | windowIsResizable)) == (windowHasTitleBar | windowIsResizable);
     }
 
     Rectangle<int> getCurrentScaledBounds (float scale) const

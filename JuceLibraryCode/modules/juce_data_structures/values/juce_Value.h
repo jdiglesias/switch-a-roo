@@ -192,13 +192,8 @@ public:
     protected:
         //==============================================================================
         friend class Value;
-        SortedSet<Value*> valuesWithListeners;
-
-    private:
-        struct Pimpl;
-        friend struct Pimpl;
-        friend struct ContainerDeletePolicy<Pimpl>;
-        ScopedPointer<Pimpl> pimpl;
+        SortedSet <Value*> valuesWithListeners;
+        ReferenceCountedObjectPtr<ReferenceCountedObject> asyncUpdater;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ValueSource)
     };
@@ -215,8 +210,8 @@ public:
 private:
     //==============================================================================
     friend class ValueSource;
-    ReferenceCountedObjectPtr<ValueSource> value;
-    ListenerList<Listener> listeners;
+    ReferenceCountedObjectPtr <ValueSource> value;
+    ListenerList <Listener> listeners;
 
     void callListeners();
 

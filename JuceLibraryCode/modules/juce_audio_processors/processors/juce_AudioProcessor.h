@@ -44,7 +44,11 @@ class JUCE_API  AudioProcessor
 {
 protected:
     //==============================================================================
-    /** Constructor. */
+    /** Constructor.
+
+        You can also do your initialisation tasks in the initialiseFilterInfo()
+        call, which will be made after this object has been created.
+    */
     AudioProcessor();
 
 public:

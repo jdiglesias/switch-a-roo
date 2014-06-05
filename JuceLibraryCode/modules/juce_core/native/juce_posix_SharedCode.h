@@ -280,12 +280,6 @@ int64 File::getSize() const
     return juce_stat (fullPath, info) ? info.st_size : 0;
 }
 
-uint64 File::getFileIdentifier() const
-{
-    juce_statStruct info;
-    return juce_stat (fullPath, info) ? (uint64) info.st_ino : 0;
-}
-
 //==============================================================================
 bool File::hasWriteAccess() const
 {
@@ -1216,7 +1210,7 @@ private:
         {
             mach_timebase_info_data_t timebase;
             (void) mach_timebase_info (&timebase);
-            delta = (((uint64_t) (millis * 1000000.0)) * timebase.denom) / timebase.numer;
+            delta = (((uint64_t) (millis * 1000000.0)) * timebase.numer) / timebase.denom;
             time = mach_absolute_time();
         }
 

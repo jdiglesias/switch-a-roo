@@ -287,7 +287,7 @@ private:
 
                     if (bytesToDo > 0
                          && ! InternetWriteFile (request,
-                                                 static_cast<const char*> (postData.getData()) + bytesSent,
+                                                 static_cast <const char*> (postData.getData()) + bytesSent,
                                                  (DWORD) bytesToDo, &bytesDone))
                     {
                         break;
@@ -342,13 +342,7 @@ struct GetAdaptersInfoHelper
 
 namespace MACAddressHelpers
 {
-    static void addAddress (Array<MACAddress>& result, const MACAddress& ma)
-    {
-        if (! ma.isNull())
-            result.addIfNotAlreadyThere (ma);
-    }
-
-    static void getViaGetAdaptersInfo (Array<MACAddress>& result)
+    void getViaGetAdaptersInfo (Array<MACAddress>& result)
     {
         GetAdaptersInfoHelper gah;
 
@@ -356,11 +350,11 @@ namespace MACAddressHelpers
         {
             for (PIP_ADAPTER_INFO adapter = gah.adapterInfo; adapter != nullptr; adapter = adapter->Next)
                 if (adapter->AddressLength >= 6)
-                    addAddress (result, MACAddress (adapter->Address));
+                    result.addIfNotAlreadyThere (MACAddress (adapter->Address));
         }
     }
 
-    static void getViaNetBios (Array<MACAddress>& result)
+    void getViaNetBios (Array<MACAddress>& result)
     {
         DynamicLibrary dll ("netapi32.dll");
         JUCE_LOAD_WINAPI_FUNCTION (dll, Netbios, NetbiosCall, UCHAR, (PNCB))
@@ -402,7 +396,7 @@ namespace MACAddressHelpers
                     ncb.ncb_length = sizeof (ASTAT);
 
                     if (NetbiosCall (&ncb) == 0 && astat.adapt.adapter_type == 0xfe)
-                        addAddress (result, MACAddress (astat.adapt.adapter_address));
+                        result.addIfNotAlreadyThere (MACAddress (astat.adapt.adapter_address));
                 }
             }
         }

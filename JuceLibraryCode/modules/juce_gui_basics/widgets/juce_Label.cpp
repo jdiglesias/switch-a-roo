@@ -28,7 +28,8 @@ Label::Label (const String& name, const String& labelText)
       lastTextValue (labelText),
       font (15.0f),
       justification (Justification::centredLeft),
-      border (1, 5, 1, 5),
+      horizontalBorderSize (5),
+      verticalBorderSize (1),
       minimumHorizontalScale (0.7f),
       editSingleClick (false),
       editDoubleClick (false),
@@ -122,11 +123,12 @@ void Label::setJustificationType (Justification newJustification)
     }
 }
 
-void Label::setBorderSize (BorderSize<int> newBorder)
+void Label::setBorderSize (int h, int v)
 {
-    if (border != newBorder)
+    if (horizontalBorderSize != h || verticalBorderSize != v)
     {
-        border = newBorder;
+        horizontalBorderSize = h;
+        verticalBorderSize = v;
         repaint();
     }
 }
@@ -323,7 +325,7 @@ void Label::mouseDoubleClick (const MouseEvent& e)
 void Label::resized()
 {
     if (editor != nullptr)
-        editor->setBounds (getLocalBounds());
+        editor->setBoundsInset (BorderSize<int> (0));
 }
 
 void Label::focusGained (FocusChangeType cause)

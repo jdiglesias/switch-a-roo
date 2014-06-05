@@ -351,11 +351,10 @@ void Desktop::setKioskModeComponent (Component* componentToUse, const bool allow
         // agh! Don't delete or remove a component from the desktop while it's still the kiosk component!
         jassert (kioskModeComponent == nullptr || ComponentPeer::getPeerFor (kioskModeComponent) != nullptr);
 
-        if (Component* const oldKioskComp = kioskModeComponent)
+        if (kioskModeComponent != nullptr)
         {
-            kioskModeComponent = nullptr; // (to make sure that isKioskMode() returns false when resizing the old one)
-            setKioskComponent (oldKioskComp, false, allowMenusAndBars);
-            oldKioskComp->setBounds (kioskComponentOriginalBounds);
+            setKioskComponent (kioskModeComponent, false, allowMenusAndBars);
+            kioskModeComponent->setBounds (kioskComponentOriginalBounds);
         }
 
         kioskModeComponent = componentToUse;

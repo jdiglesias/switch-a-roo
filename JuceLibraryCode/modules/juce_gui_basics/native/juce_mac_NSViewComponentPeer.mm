@@ -898,7 +898,11 @@ public:
 
     NSRect constrainRect (NSRect r)
     {
-        if (constrainer != nullptr && ! isKioskMode())
+        if (constrainer != nullptr
+            #if defined (MAC_OS_X_VERSION_10_7) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7)
+             && ([window styleMask] & NSFullScreenWindowMask) == 0
+            #endif
+            )
         {
             Rectangle<int> pos      (convertToRectInt (flippedScreenRect (r)));
             Rectangle<int> original (convertToRectInt (flippedScreenRect ([window frame])));
@@ -1151,7 +1155,7 @@ public:
         }
     }
 
-    void textInputRequired (Point<int>, TextInputTarget&) override {}
+    void textInputRequired (const Point<int>&) override {}
 
     //==============================================================================
     void repaint (const Rectangle<int>& area) override

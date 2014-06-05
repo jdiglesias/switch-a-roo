@@ -74,17 +74,36 @@ public:
 		if(!(index<0) && (fileNumba !=0)){
 			if (fileNumba == 1){
 				int real_index = thisProcessor->song1->nearestZero(index);
-				timeSlices1->push_back(index);
-				timeSlices1->sort();
+				if (!inSlice(real_index, 1)){
+					timeSlices1->push_back(index);
+					timeSlices1->sort();
+				}
 			}
 			if (fileNumba == 2){
 				int real_index = thisProcessor->song2->nearestZero(index);
-				timeSlices2->push_back(index);
-				timeSlices2->sort();
+				if (!inSlice(real_index, 2)){
+					timeSlices1->push_back(index);
+					timeSlices1->sort();
+				}
 			}
 		}
 		
 		repaint();
+	}
+	bool inSlice(int index, int fileNum){
+		if (fileNum == 1){
+			for (std::list<int>::iterator iter = timeSlices1->begin(); iter != timeSlices1->end(); iter++){
+				if (*iter == index)
+					return true;
+			}
+		}
+		if (fileNum == 2){
+			for (std::list<int>::iterator iter = timeSlices1->begin(); iter != timeSlices2->end(); iter++){
+				if (*iter == index)
+					return true;
+			}
+		}
+		return false;
 	}
 
 	void redoTimeSlices(float newThresh, int newMinSlices);

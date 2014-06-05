@@ -11,8 +11,8 @@
 
 */
 
-#ifndef __JUCE_APPCONFIG_GQJION__
-#define __JUCE_APPCONFIG_GQJION__
+#ifndef __JUCE_APPCONFIG_EN3JAW__
+#define __JUCE_APPCONFIG_EN3JAW__
 
 //==============================================================================
 // [BEGIN_USER_CODE_SECTION]
@@ -205,7 +205,7 @@
  #define JucePlugin_Build_VST3             0
 #endif
 #ifndef  JucePlugin_Build_AU
- #define JucePlugin_Build_AU               1
+ #define JucePlugin_Build_AU               0
 #endif
 #ifndef  JucePlugin_Build_RTAS
  #define JucePlugin_Build_RTAS             0
@@ -214,19 +214,19 @@
  #define JucePlugin_Build_AAX              0
 #endif
 #ifndef  JucePlugin_Name
- #define JucePlugin_Name                   "switcharoo"
+ #define JucePlugin_Name                   "NewProject"
 #endif
 #ifndef  JucePlugin_Desc
- #define JucePlugin_Desc                   "switcharoo"
+ #define JucePlugin_Desc                   "NewProject"
 #endif
 #ifndef  JucePlugin_Manufacturer
- #define JucePlugin_Manufacturer           "scoobydoo"
+ #define JucePlugin_Manufacturer           "yourcompany"
 #endif
 #ifndef  JucePlugin_ManufacturerWebsite
  #define JucePlugin_ManufacturerWebsite    ""
 #endif
 #ifndef  JucePlugin_ManufacturerEmail
- #define JucePlugin_ManufacturerEmail      ""
+ #define JucePlugin_ManufacturerEmail      "support@yourcompany.com"
 #endif
 #ifndef  JucePlugin_ManufacturerCode
  #define JucePlugin_ManufacturerCode       'Manu'
@@ -280,16 +280,16 @@
  #define JucePlugin_AUSubType              JucePlugin_PluginCode
 #endif
 #ifndef  JucePlugin_AUExportPrefix
- #define JucePlugin_AUExportPrefix         switcharooAU
+ #define JucePlugin_AUExportPrefix         NewProjectAU
 #endif
 #ifndef  JucePlugin_AUExportPrefixQuoted
- #define JucePlugin_AUExportPrefixQuoted   "switcharooAU"
+ #define JucePlugin_AUExportPrefixQuoted   "NewProjectAU"
 #endif
 #ifndef  JucePlugin_AUManufacturerCode
  #define JucePlugin_AUManufacturerCode     JucePlugin_ManufacturerCode
 #endif
 #ifndef  JucePlugin_CFBundleIdentifier
- #define JucePlugin_CFBundleIdentifier     com.scoobydoo.switcharoo
+ #define JucePlugin_CFBundleIdentifier     com.yourcompany.NewProject
 #endif
 #ifndef  JucePlugin_RTASCategory
  #define JucePlugin_RTASCategory           ePlugInCategory_None
@@ -307,7 +307,7 @@
  #define JucePlugin_RTASDisableMultiMono   0
 #endif
 #ifndef  JucePlugin_AAXIdentifier
- #define JucePlugin_AAXIdentifier          com.yourcompany.switcharoo
+ #define JucePlugin_AAXIdentifier          com.yourcompany.NewProject
 #endif
 #ifndef  JucePlugin_AAXManufacturerCode
  #define JucePlugin_AAXManufacturerCode    JucePlugin_ManufacturerCode
@@ -325,4 +325,4 @@
  #define JucePlugin_AAXDisableMultiMono    0
 #endif
 
-#endif  // __JUCE_APPCONFIG_GQJION__
+#endif  // __JUCE_APPCONFIG_EN3JAW__

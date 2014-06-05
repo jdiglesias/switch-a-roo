@@ -349,11 +349,6 @@ public:
             if (! carryOn)
                 break;
         }
-
-        // paths that finish back at their start position often seem to be
-        // left without a 'z', so need to be closed explicitly..
-        if (path.getCurrentPosition() == subpathStart)
-            path.closeSubPath();
     }
 
 private:

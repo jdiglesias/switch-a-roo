@@ -116,7 +116,7 @@ public:
             if (previousCommand != 0)
                 message << "\n\n("
                         << TRANS("Currently assigned to \"CMDN\"")
-                            .replace ("CMDN", TRANS (owner.getCommandManager().getNameOfCommand (previousCommand)))
+                            .replace ("CMDN", owner.getCommandManager().getNameOfCommand (previousCommand))
                         << ')';
 
             setMessage (message);

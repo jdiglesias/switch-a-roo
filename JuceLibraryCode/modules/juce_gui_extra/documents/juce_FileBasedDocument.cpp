@@ -119,7 +119,7 @@ static bool askToOverwriteFile (const File& newFile)
 {
     return AlertWindow::showOkCancelBox (AlertWindow::WarningIcon,
                                             TRANS("File already exists"),
-                                            TRANS("There's already a file called: FLNM")
+                                            TRANS("There's already a file called: FLMN")
                                                 .replace ("FLNM", newFile.getFullPathName())
                                              + "\n\n"
                                              + TRANS("Are you sure you want to overwrite it?"),

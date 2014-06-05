@@ -102,9 +102,9 @@ public:
 
     //==============================================================================
    #if JUCE_DUMP_MOUSE_EVENTS
-    #define JUCE_MOUSE_EVENT_DBG(desc)   DBG ("Mouse " << desc << " #" << index \
+    #define JUCE_MOUSE_EVENT_DBG(desc)   DBG ("Mouse " desc << " #" << source.getIndex() \
                                                 << ": " << screenPosToLocalPos (comp, screenPos).toString() \
-                                                << " - Comp: " << String::toHexString ((pointer_sized_int) &comp));
+                                                << " - Comp: " << String::toHexString ((int) &comp));
    #else
     #define JUCE_MOUSE_EVENT_DBG(desc)
    #endif

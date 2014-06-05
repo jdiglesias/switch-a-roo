@@ -408,7 +408,7 @@ void SwitcharooAudioProcessor::doComparison(songProperties * source, songPropert
 				if (i < fftSource.size() - 1){
 					i++;
 					//go back to first sample
-					//j=0
+					//j = 0;
 				}
 				if (i >= fftSource.size() - 1){
 					//escape to upper for loop or it should be done i guess.
@@ -440,16 +440,16 @@ bool SwitcharooAudioProcessor::fftMatch(fftContainer source, fftContainer compar
 	int match = 0;
 	for (int i = 0; i < source.length; i++){
 		//greater by .1 or less by .1
-		if (source.amplitudes[i] >= (compare.amplitudes[i] - .1) && source.amplitudes[i] <= (compare.amplitudes[i] + .1)){
+		if (source.amplitudes[i] >= (compare.amplitudes[i] - .05) && source.amplitudes[i] <= (compare.amplitudes[i] + .05)){
 			match++;
 		}
 	}
-	if (match > source.length * 3 / 4){
+	if (match > source.length * 4 / 5){
 		return true;
 	}
-	else{
-		false;
-	}
+
+	return false;
+
 
 }
 //==============================================================================

@@ -42,7 +42,6 @@
  #pragma clang diagnostic ignored "-Wdeprecated-declarations"
  #pragma clang diagnostic ignored "-Wsign-conversion"
  #pragma clang diagnostic ignored "-Wconversion"
- #pragma clang diagnostic ignored "-Woverloaded-virtual"
 #endif
 
 #include "../utility/juce_IncludeSystemHeaders.h"

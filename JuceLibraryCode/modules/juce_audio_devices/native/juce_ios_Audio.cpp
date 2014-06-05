@@ -67,12 +67,7 @@ public:
         return s;
     }
 
-    Array<double> getAvailableSampleRates() override
-    {
-        // can't find a good way to actually ask the device for which of these it supports..
-        static const double rates[] = { 8000.0, 16000.0, 22050.0, 32000.0, 44100.0, 48000.0 };
-        return Array<double> (rates, numElementsInArray (rates));
-    }
+    Array<double> getAvailableSampleRates() override    { return sampleRates; }
 
     Array<int> getAvailableBufferSizes() override
     {
@@ -84,7 +79,7 @@ public:
         return r;
     }
 
-    int getDefaultBufferSize() override         { return 1024; }
+    int getDefaultBufferSize() override                 { return 1024; }
 
     String open (const BigInteger& inputChannelsWanted,
                  const BigInteger& outputChannelsWanted,
@@ -122,9 +117,10 @@ public:
         AudioSessionAddPropertyListener (kAudioSessionProperty_AudioRouteChange, routingChangedStatic, this);
 
         fixAudioRouteIfSetToReceiver();
+        updateDeviceInfo();
 
         setSessionFloat64Property (kAudioSessionProperty_PreferredHardwareSampleRate, targetSampleRate);
-        updateDeviceInfo();
+        updateSampleRates();
 
         setSessionFloat32Property (kAudioSessionProperty_PreferredHardwareIOBufferDuration, preferredBufferSize / sampleRate);
         updateCurrentBufferSize();
@@ -166,15 +162,8 @@ public:
     BigInteger getActiveOutputChannels() const override    { return activeOutputChans; }
     BigInteger getActiveInputChannels() const override     { return activeInputChans; }
 
-    int getOutputLatencyInSamples() override    { return getLatency (kAudioSessionProperty_CurrentHardwareOutputLatency); }
-    int getInputLatencyInSamples() override     { return getLatency (kAudioSessionProperty_CurrentHardwareInputLatency); }
-
-    int getLatency (AudioSessionPropertyID propID)
-    {
-        Float32 latency = 0;
-        getSessionProperty (propID, latency);
-        return roundToInt (latency * getCurrentSampleRate());
-    }
+    int getOutputLatencyInSamples() override               { return 0; } //xxx
+    int getInputLatencyInSamples() override                { return 0; } //xxx
 
     void start (AudioIODeviceCallback* newCallback) override
     {
@@ -212,6 +201,7 @@ private:
     //==================================================================================================
     CriticalSection callbackLock;
     Float64 sampleRate;
+    Array<Float64> sampleRates;
     int numInputChannels, numOutputChannels;
     int preferredBufferSize, actualBufferSize;
     bool isRunning;
@@ -330,6 +320,38 @@ private:
     {
         getSessionProperty (kAudioSessionProperty_CurrentHardwareSampleRate, sampleRate);
         getSessionProperty (kAudioSessionProperty_AudioInputAvailable, audioInputIsAvailable);
+    }
+
+    void updateSampleRates()
+    {
+        getSessionProperty (kAudioSessionProperty_CurrentHardwareSampleRate, sampleRate);
+
+        sampleRates.clear();
+        sampleRates.add (sampleRate);
+
+        const int commonSampleRates[] = { 8000, 16000, 22050, 32000, 44100, 48000 };
+
+        for (int i = 0; i < numElementsInArray (commonSampleRates); ++i)
+        {
+            Float64 rate = (Float64) commonSampleRates[i];
+
+            if (rate != sampleRate)
+            {
+                setSessionFloat64Property (kAudioSessionProperty_PreferredHardwareSampleRate, rate);
+
+                Float64 actualSampleRate = 0.0;
+                getSessionProperty (kAudioSessionProperty_CurrentHardwareSampleRate, actualSampleRate);
+
+                if (actualSampleRate == rate)
+                    sampleRates.add (actualSampleRate);
+            }
+        }
+
+        DefaultElementComparator<Float64> comparator;
+        sampleRates.sort (comparator);
+
+        setSessionFloat64Property (kAudioSessionProperty_PreferredHardwareSampleRate, sampleRate);
+        getSessionProperty (kAudioSessionProperty_CurrentHardwareSampleRate, sampleRate);
     }
 
     void updateCurrentBufferSize()

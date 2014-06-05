@@ -165,20 +165,18 @@ juce_wchar CodeDocument::Iterator::nextChar() noexcept
                 return 0;
         }
 
-        if (const juce_wchar result = charPointer.getAndAdvance())
-        {
-            if (charPointer.isEmpty())
-            {
-                ++line;
-                charPointer = nullptr;
-            }
+        const juce_wchar result = charPointer.getAndAdvance();
 
+        if (result == 0)
+        {
+            ++line;
+            charPointer = nullptr;
+        }
+        else
+        {
             ++position;
             return result;
         }
-
-        ++line;
-        charPointer = nullptr;
     }
 }
 
@@ -214,7 +212,9 @@ juce_wchar CodeDocument::Iterator::peekNextChar() const noexcept
             return 0;
     }
 
-    if (const juce_wchar c = *charPointer)
+    const juce_wchar c = *charPointer;
+
+    if (c != 0)
         return c;
 
     if (const CodeDocumentLine* const l = document->lines [line + 1])

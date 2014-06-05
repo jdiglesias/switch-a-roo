@@ -10,8 +10,8 @@
 
 */
 
-#ifndef __APPHEADERFILE_GQJION__
-#define __APPHEADERFILE_GQJION__
+#ifndef __APPHEADERFILE_EN3JAW__
+#define __APPHEADERFILE_EN3JAW__
 
 #include "AppConfig.h"
 #include "modules/juce_audio_basics/juce_audio_basics.h"
@@ -29,6 +29,7 @@
 #include "modules/juce_gui_extra/juce_gui_extra.h"
 #include "modules/juce_opengl/juce_opengl.h"
 #include "modules/juce_video/juce_video.h"
+#include "BinaryData.h"
 
 #if ! DONT_SET_USING_JUCE_NAMESPACE
  // If your code uses a lot of JUCE classes, then this will obviously save you
@@ -38,9 +39,9 @@
 
 namespace ProjectInfo
 {
-    const char* const  projectName    = "switcharoo";
+    const char* const  projectName    = "NewProject";
     const char* const  versionString  = "1.0.0";
     const int          versionNumber  = 0x10000;
 }
 
-#endif   // __APPHEADERFILE_GQJION__
+#endif   // __APPHEADERFILE_EN3JAW__

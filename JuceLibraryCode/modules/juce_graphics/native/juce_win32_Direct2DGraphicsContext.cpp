@@ -37,9 +37,10 @@ public:
         D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties();
         D2D1_HWND_RENDER_TARGET_PROPERTIES propsHwnd = D2D1::HwndRenderTargetProperties (hwnd, size);
 
-        if (factories->d2dFactory != nullptr)
+        const Direct2DFactories& factories = Direct2DFactories::getInstance();
+        if (factories.d2dFactory != nullptr)
         {
-            HRESULT hr = factories->d2dFactory->CreateHwndRenderTarget (props, propsHwnd, renderingTarget.resetAndGetPointerAddress());
+            HRESULT hr = factories.d2dFactory->CreateHwndRenderTarget (props, propsHwnd, renderingTarget.resetAndGetPointerAddress());
             jassert (SUCCEEDED (hr)); (void) hr;
             hr = renderingTarget->CreateSolidColorBrush (D2D1::ColorF::ColorF (0.0f, 0.0f, 0.0f, 1.0f), colourBrush.resetAndGetPointerAddress());
         }
@@ -286,8 +287,9 @@ public:
     {
         renderingTarget->SetTransform (transformToMatrix (currentState->transform));
 
-        DirectWriteTypeLayout::drawToD2DContext (text, area, renderingTarget, factories->directWriteFactory,
-                                                 factories->d2dFactory, factories->systemFonts);
+        const Direct2DFactories& factories = Direct2DFactories::getInstance();
+        DirectWriteTypeLayout::drawToD2DContext (text, area, renderingTarget, factories.directWriteFactory,
+                                                 factories.d2dFactory, factories.systemFonts);
 
         renderingTarget->SetTransform (D2D1::IdentityMatrix());
         return true;
@@ -693,7 +695,6 @@ public:
 
     //==============================================================================
 private:
-    SharedResourcePointer<Direct2DFactories> factories;
     HWND hwnd;
     ComSmartPtr <ID2D1HwndRenderTarget> renderingTarget;
     ComSmartPtr <ID2D1SolidColorBrush> colourBrush;
@@ -732,7 +733,7 @@ private:
     static ID2D1PathGeometry* rectListToPathGeometry (const RectangleList<int>& clipRegion)
     {
         ID2D1PathGeometry* p = nullptr;
-        factories->d2dFactory->CreatePathGeometry (&p);
+        Direct2DFactories::getInstance().d2dFactory->CreatePathGeometry (&p);
 
         ComSmartPtr <ID2D1GeometrySink> sink;
         HRESULT hr = p->Open (sink.resetAndGetPointerAddress()); // xxx handle error
@@ -810,7 +811,7 @@ private:
     static ID2D1PathGeometry* pathToPathGeometry (const Path& path, const AffineTransform& transform)
     {
         ID2D1PathGeometry* p = nullptr;
-        factories->d2dFactory->CreatePathGeometry (&p);
+        Direct2DFactories::getInstance().d2dFactory->CreatePathGeometry (&p);
 
         ComSmartPtr <ID2D1GeometrySink> sink;
         HRESULT hr = p->Open (sink.resetAndGetPointerAddress());

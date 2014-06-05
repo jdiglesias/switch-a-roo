@@ -357,8 +357,6 @@ MidiOutput* MidiOutput::createNewDevice (const String& deviceName)
 
 MidiOutput::~MidiOutput()
 {
-    stopBackgroundThread();
-
     delete static_cast<CoreMidiHelpers::MidiPortAndEndpoint*> (internal);
 }
 

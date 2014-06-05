@@ -107,9 +107,15 @@ public:
         systemFonts = nullptr;
     }
 
-    ComSmartPtr<ID2D1Factory> d2dFactory;
-    ComSmartPtr<IDWriteFactory> directWriteFactory;
-    ComSmartPtr<IDWriteFontCollection> systemFonts;
+    static const Direct2DFactories& getInstance()
+    {
+        static Direct2DFactories instance;
+        return instance;
+    }
+
+    ComSmartPtr <ID2D1Factory> d2dFactory;
+    ComSmartPtr <IDWriteFactory> directWriteFactory;
+    ComSmartPtr <IDWriteFontCollection> systemFonts;
 
 private:
     DynamicLibrary direct2dDll, directWriteDll;
@@ -249,7 +255,6 @@ public:
     IDWriteFontFace* getIDWriteFontFace() const noexcept    { return dwFontFace; }
 
 private:
-    SharedResourcePointer<Direct2DFactories> factories;
     ComSmartPtr<IDWriteFontFace> dwFontFace;
     float unitsToHeightScaleFactor, heightToPointsFactor, ascent;
     int designUnitsPerEm;

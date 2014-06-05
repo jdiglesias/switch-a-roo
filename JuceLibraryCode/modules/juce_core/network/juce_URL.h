@@ -360,7 +360,6 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Upload)
     };
 
-    friend struct ContainerDeletePolicy<Upload>;
     ReferenceCountedArray<Upload> filesToUpload;
 
     URL (const String&, int);
